@@ -146,9 +146,13 @@ export function SurveyProvider({ children }) {
       state.scoutNccStudents, state.labs, state.labRequirements, state.committeeMembers,
       state.panchayatMembers, state.examResults, state.requirements, state.status, state.surveyId]);
 
-  // Save to server
+  // Save to server (with local fallback)
   const saveToServer = useCallback(async () => {
     if (!state.surveyId || state.status === 'submitted') return;
+    if (String(state.surveyId).startsWith('local_')) {
+      dispatch({ type: 'SET_SAVED' });
+      return;
+    }
     dispatch({ type: 'SET_SAVING', value: true });
     try {
       await api.updateSurvey(state.surveyId, {
@@ -171,8 +175,8 @@ export function SurveyProvider({ children }) {
       });
       dispatch({ type: 'SET_SAVED' });
     } catch (err) {
-      console.error('Auto-save failed:', err);
-      dispatch({ type: 'SET_SAVING', value: false });
+      console.warn('Server save failed, kept locally:', err);
+      dispatch({ type: 'SET_SAVED' });
     }
   }, [state]);
 

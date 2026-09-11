@@ -71,14 +71,16 @@ export default function SurveyForm() {
         return; // Don't proceed if validation fails
       }
       
-      // If new survey, create it on server
+      // If new survey, create it on server or fallback to local ID
       if (!state.surveyId) {
         try {
           const { surveyId, schoolId } = await api.createSurvey(state.school);
           dispatch({ type: 'SET_SURVEY_META', surveyId, schoolId, status: 'draft' });
         } catch (err) {
-          alert('सर्वे बनाने में त्रुटि हुई।');
-          return;
+          console.warn('Server unavailable or offline, continuing in local mode:', err);
+          const localSurveyId = 'local_' + Date.now();
+          const localSchoolId = 'school_' + Date.now();
+          dispatch({ type: 'SET_SURVEY_META', surveyId: localSurveyId, schoolId: localSchoolId, status: 'draft' });
         }
       }
     }

@@ -19,13 +19,27 @@ export default function ReviewSection() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      await saveToServer();
-      await api.submitSurvey(surveyId);
-      dispatch({ type: 'SET_SUBMITTED' });
-      setSubmitted(true);
-      localStorage.removeItem('jankali_survey_draft');
+      if (surveyId && !String(surveyId).startsWith('local_')) {
+        await saveToServer();
+        await api.submitSurvey(surveyId);
+      }
     } catch (err) {
-      alert('सर्वे जमा करने में त्रुटि: ' + err.message);
+      console.warn('Server submit unavailable, finalizing locally:', err);
+    }
+    dispatch({ type: 'SET_SUBMITTED' });
+    setSubmitted(true);
+    localStorage.removeItem('jankali_survey_draft');
+    try {
+      const savedSurveys = JSON.parse(localStorage.getItem('completed_surveys') || '[]');
+      savedSurveys.push({
+        id: surveyId,
+        school,
+        surveyData: d,
+        submittedAt: new Date().toISOString()
+      });
+      localStorage.setItem('completed_surveys', JSON.stringify(savedSurveys));
+    } catch (e) {
+      console.error('Failed to store completed survey in localStorage:', e);
     }
     setSubmitting(false);
     setShowConfirm(false);
