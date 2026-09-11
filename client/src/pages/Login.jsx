@@ -16,7 +16,9 @@ export default function Login() {
     <div style={{
       position: 'relative',
       minHeight: '100vh',
-      overflow: 'hidden',
+      overflowX: 'hidden',
+      overflowY: 'auto',
+      overscrollBehaviorY: 'contain',
       fontFamily: 'sans-serif'
     }}>
       {/* Top Left Branding */}
@@ -38,11 +40,11 @@ export default function Login() {
         muted
         playsInline
         style={{
-          position: 'absolute',
+          position: 'fixed',
           top: 0,
           left: 0,
-          width: '100%',
-          height: '100%',
+          width: '100vw',
+          height: '100vh',
           objectFit: 'cover',
           zIndex: -2
         }}
@@ -52,11 +54,11 @@ export default function Login() {
 
       {/* Overlay film (20% opacity) */}
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
+        width: '100vw',
+        height: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.2)',
         zIndex: -1
       }} />
@@ -64,10 +66,12 @@ export default function Login() {
       {/* Login Form Container */}
       <div style={{
         minHeight: '100vh',
+        boxSizing: 'border-box',
         display: 'flex',
-        alignItems: 'flex-end', // push towards bottom so it doesn't cover face as much
+        alignItems: 'flex-end',
         justifyContent: 'center',
-        paddingBottom: '10vh', // give some space from the bottom
+        paddingTop: '120px',
+        paddingBottom: '10vh',
         position: 'relative',
         zIndex: 1
       }}>
