@@ -19,12 +19,6 @@ export default function Login() {
       overflow: 'hidden',
       fontFamily: 'sans-serif'
     }}>
-      <style>
-        {`
-          @import url('https://fonts.googleapis.com/css2?family=Yatra+One&display=swap');
-        `}
-      </style>
-
       {/* Top Left Branding */}
       <div style={{
         position: 'absolute',
@@ -32,19 +26,9 @@ export default function Login() {
         left: '40px',
         display: 'flex',
         alignItems: 'center',
-        gap: '20px',
         zIndex: 10
       }}>
         <img src="/emblem.svg" alt="Satyameva Jayate Logo" style={{ height: '90px', width: 'auto', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
-        <span style={{
-          fontFamily: "'Yatra One', system-ui",
-          fontSize: '48px',
-          color: 'white',
-          textShadow: '0 3px 8px rgba(0,0,0,0.8)',
-          letterSpacing: '2px'
-        }}>
-          जनकली
-        </span>
       </div>
 
       {/* Background Video */}
