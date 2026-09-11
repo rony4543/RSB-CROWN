@@ -1,0 +1,80 @@
+import RadioGroup from '../common/RadioGroup';
+import FloatingInput from '../common/FloatingInput';
+import FloatingTextarea from '../common/FloatingTextarea';
+import { useSurvey } from '../../context/SurveyContext';
+import { AlertTriangle } from 'lucide-react';
+
+export default function ElectricitySection() {
+  const { state, setField } = useSurvey();
+  const d = state.surveyData;
+  const YN = ['हाँ', 'नहीं'];
+
+  // Computer validation
+  const total = parseInt(d.q12_total) || 0;
+  const working = parseInt(d.q12_working) || 0;
+  const broken = parseInt(d.q12_broken) || 0;
+  const computerMismatch = total > 0 && (working + broken) > 0 && (working + broken) !== total;
+
+  return (
+    <div>
+      <div className="section-header">
+        <span className="section-number">Q11 – Q13 | बिजली, कम्प्यूटर एवं इंटरनेट</span>
+        <h2 className="section-title">बिजली, कम्प्यूटर एवं इंटरनेट</h2>
+      </div>
+
+      {/* Q11 */}
+      <div className="card">
+        <div className="question-block">
+          <div className="question-number">Q11</div>
+          <div className="question-text">विद्यालय में बिजली कनेक्शन / सौर ऊर्जा उपलब्ध है?</div>
+          <RadioGroup name="q11_electricity" value={d.q11_electricity} onChange={(n,v) => setField(n,v)} options={YN} label="बिजली कनेक्शन" />
+          <RadioGroup name="q11_solar" value={d.q11_solar} onChange={(n,v) => setField(n,v)} options={YN} label="सौर ऊर्जा" />
+          {(d.q11_electricity === 'नहीं' || d.q11_solar === 'नहीं') && (
+            <div className="conditional-block">
+              <FloatingTextarea label="आवश्यकता का विवरण" name="q11_details"
+                value={d.q11_details} onChange={(n,v) => setField(n,v)} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Q12 */}
+      <div className="card">
+        <div className="question-block">
+          <div className="question-number">Q12</div>
+          <div className="question-text">विद्यालय में कम्प्यूटर की संख्या का विवरण दें।</div>
+          <div className="inline-fields">
+            <FloatingInput label="कुल कम्प्यूटर" name="q12_total"
+              value={d.q12_total} onChange={(n,v) => setField(n,v)} type="number" inputMode="numeric" min="0" />
+            <FloatingInput label="सही / कार्यशील कम्प्यूटर" name="q12_working"
+              value={d.q12_working} onChange={(n,v) => setField(n,v)} type="number" inputMode="numeric" min="0" />
+          </div>
+          <FloatingInput label="खराब कम्प्यूटर" name="q12_broken"
+            value={d.q12_broken} onChange={(n,v) => setField(n,v)} type="number" inputMode="numeric" min="0" />
+          {computerMismatch && (
+            <div className="validation-warning">
+              <AlertTriangle size={18} />
+              <span>कृपया कम्प्यूटर की संख्या जांचें। कुल संख्या ({total}) और कार्यशील ({working}) + खराब ({broken}) = {working+broken} मेल नहीं खा रही है।</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Q13 */}
+      <div className="card">
+        <div className="question-block">
+          <div className="question-number">Q13</div>
+          <div className="question-text">क्या विद्यालय में इंटरनेट कनेक्शन लगा हुआ है?</div>
+          <RadioGroup name="q13_internet" value={d.q13_internet} onChange={(n,v) => setField(n,v)} options={YN} label="इंटरनेट कनेक्शन" />
+          <RadioGroup name="q13_network" value={d.q13_network} onChange={(n,v) => setField(n,v)} options={YN} label="नेटवर्क उपलब्धता" />
+          {(d.q13_internet === 'नहीं' || d.q13_network === 'नहीं') && (
+            <div className="conditional-block">
+              <FloatingTextarea label="समस्या / आवश्यकता का विवरण" name="q13_details"
+                value={d.q13_details} onChange={(n,v) => setField(n,v)} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
