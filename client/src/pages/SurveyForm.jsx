@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircle, AlertTriangle, ChevronRight, ChevronLeft, Save } from 'lucide-react';
+import { CheckCircle, AlertTriangle, ChevronRight, ChevronLeft, Save, Check } from 'lucide-react';
 import { useSurvey } from '../context/SurveyContext';
 import { SECTIONS } from '../utils/constants';
 import { api } from '../services/api';
@@ -130,20 +130,78 @@ export default function SurveyForm() {
       <div className="survey-layout">
         {/* Main Content Area (Full Page) */}
         <div className="survey-content-area">
-          {/* Dot Progress Indicator */}
-          <div className="survey-progress-dots">
-            {SECTIONS.map((section, idx) => (
-              <div
-                key={section.id}
-                className={`progress-dot ${state.currentSection === idx ? 'active' : ''} ${state.currentSection > idx ? 'completed' : ''}`}
-                onClick={() => {
-                  if (state.surveyId || state.currentSection > 0 || idx === 0) {
-                    dispatch({ type: 'SET_SECTION', section: idx });
-                  }
-                }}
-                title={section.shortTitle}
-              />
-            ))}
+          {/* Stepper Progress Bar */}
+          <div className="survey-stepper-container">
+            {/* Header info bar */}
+            <div className="stepper-meta-bar">
+              <div className="stepper-section-info">
+                <span className="stepper-step-badge">
+                  भाग {state.currentSection + 1} / {SECTIONS.length}
+                </span>
+                <span className="stepper-section-title">
+                  {SECTIONS[state.currentSection].title}
+                </span>
+              </div>
+              <div className="stepper-progress-percentage">
+                {Math.round(((state.currentSection + 1) / SECTIONS.length) * 100)}% पूर्ण
+              </div>
+            </div>
+
+            {/* Stepper nodes track */}
+            <div className="stepper-track-container">
+              {/* Background track line */}
+              <div className="stepper-track-bg">
+                <div 
+                  className="stepper-track-fill"
+                  style={{ width: `${(state.currentSection / (SECTIONS.length - 1)) * 100}%` }}
+                />
+              </div>
+
+              {/* Step dots & circles */}
+              <div className="stepper-nodes">
+                {SECTIONS.map((section, idx) => {
+                  const isFirst = idx === 0;
+                  const isLast = idx === SECTIONS.length - 1;
+                  const isActive = state.currentSection === idx;
+                  const isCompleted = state.currentSection > idx;
+                  const isClickable = state.surveyId || state.currentSection > 0 || idx === 0;
+
+                  return (
+                    <div
+                      key={section.id}
+                      className={`stepper-node-wrapper ${isClickable ? 'clickable' : ''}`}
+                      onClick={() => {
+                        if (isClickable) {
+                          dispatch({ type: 'SET_SECTION', section: idx });
+                        }
+                      }}
+                    >
+                      {/* Tooltip */}
+                      <span className="stepper-tooltip">
+                        {idx + 1}. {section.shortTitle}
+                      </span>
+
+                      {/* Node circle or dot */}
+                      {isFirst ? (
+                        <div className={`stepper-numbered-circle ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
+                          {isCompleted && !isActive ? <Check size={14} strokeWidth={3} /> : '1'}
+                        </div>
+                      ) : isLast ? (
+                        <div className={`stepper-numbered-circle ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
+                          {isCompleted && !isActive ? <Check size={14} strokeWidth={3} /> : SECTIONS.length}
+                        </div>
+                      ) : isActive ? (
+                        <div className="stepper-numbered-circle active middle-active">
+                          {idx + 1}
+                        </div>
+                      ) : (
+                        <div className={`stepper-dot ${isCompleted ? 'completed' : ''}`} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <div className="survey-content-inner">
