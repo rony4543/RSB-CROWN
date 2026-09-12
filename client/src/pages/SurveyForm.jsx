@@ -24,6 +24,7 @@ import CommitteesSection from '../components/survey/CommitteesSection';
 import ExamsSection from '../components/survey/ExamsSection';
 import RequirementsSection from '../components/survey/RequirementsSection';
 import ReviewSection from '../components/survey/ReviewSection';
+import Header from '../components/common/Header';
 
 import { validateSchoolProfile } from '../utils/validation';
 
@@ -124,6 +125,7 @@ export default function SurveyForm() {
 
   return (
     <div className="survey-container">
+      <Header />
 
       <div className="survey-layout">
         {/* Main Content Area (Full Page) */}
