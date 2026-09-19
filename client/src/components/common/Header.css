@@ -1,7 +1,7 @@
 .custom-top-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   padding: 12px 28px;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
@@ -12,6 +12,11 @@
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
 }
 
 .header-logo {
