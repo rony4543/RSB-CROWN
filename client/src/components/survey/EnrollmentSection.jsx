@@ -2,6 +2,7 @@ import { useSurvey } from '../../context/SurveyContext';
 
 export default function EnrollmentSection() {
   const { state, dispatch } = useSurvey();
+  const errors = state.errors || {};
   const { studentEnrollment } = state;
 
   const handleChange = (idx, field, value) => {
@@ -17,8 +18,16 @@ export default function EnrollmentSection() {
     dispatch({ type: 'SET_STUDENT_ENROLLMENT', payload: updated });
   };
 
-  const totalBoys = studentEnrollment.reduce((s, r) => s + (parseInt(r.boys) || 0), 0);
-  const totalGirls = studentEnrollment.reduce((s, r) => s + (parseInt(r.girls) || 0), 0);
+  const schoolType = state.surveyData.q1 || 'उच्च माध्यमिक विद्यालय';
+  let maxClasses = 12;
+  if (schoolType === 'प्राथमिक विद्यालय') maxClasses = 5;
+  else if (schoolType === 'उच्च प्राथमिक विद्यालय') maxClasses = 8;
+  else if (schoolType === 'माध्यमिक विद्यालय') maxClasses = 10;
+
+  const visibleEnrollment = studentEnrollment.slice(0, maxClasses);
+
+  const totalBoys = visibleEnrollment.reduce((s, r) => s + (parseInt(r.boys) || 0), 0);
+  const totalGirls = visibleEnrollment.reduce((s, r) => s + (parseInt(r.girls) || 0), 0);
   const totalStudents = totalBoys + totalGirls;
 
   return (
@@ -32,7 +41,8 @@ export default function EnrollmentSection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q28</div>
-          <div className="question-text">विद्यालय में कक्षा वार नामांकन की संख्या दर्ज करें।</div>
+          <div className="question-text">कक्षावार विद्यार्थियों का नामांकन (Enrollment) दर्ज करें: <span className="required-mark">*</span></div>
+          {errors.enrollment && <div className="field-error" style={{marginBottom: '10px'}}>⚠ {errors.enrollment}</div>}
 
           <div className="repeatable-table-wrapper">
             <table className="repeatable-table">
@@ -45,7 +55,7 @@ export default function EnrollmentSection() {
                 </tr>
               </thead>
               <tbody>
-                {studentEnrollment.map((row, idx) => (
+                {visibleEnrollment.map((row, idx) => (
                   <tr key={idx}>
                     <td style={{fontWeight: 500, padding: '8px 12px'}}>{row.class_name}</td>
                     <td>

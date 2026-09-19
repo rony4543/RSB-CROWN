@@ -8,9 +8,15 @@ import { WATER_SOURCES } from '../../utils/constants';
 import { Camera, MapPin, X, Image as ImageIcon } from 'lucide-react';
 
 export default function ToiletWaterSection() {
-  const { state, setField } = useSurvey();
+  const { state, setField, dispatch } = useSurvey();
   const d = state.surveyData;
+  const errors = state.errors || {};
   const YN = ['हाँ', 'नहीं'];
+
+  const handleChange = (name, value) => {
+    setField(name, value);
+    if (errors[name]) dispatch({ type: 'SET_ERRORS', errors: { ...errors, [name]: null } });
+  };
   const fileInputRef = useRef(null);
   const [photoPreview, setPhotoPreview] = useState(d.q23_toilet_photo_preview || null);
   const [geoStatus, setGeoStatus] = useState('');
@@ -72,9 +78,11 @@ export default function ToiletWaterSection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q23</div>
-          <div className="question-text">क्या विद्यालय में शौचालय बने हुए हैं?</div>
-          <RadioGroup name="q23_available" value={d.q23_available} onChange={(n,v) => setField(n,v)} options={YN} label="शौचालय उपलब्ध" />
-          <RadioGroup name="q23_girls_separate" value={d.q23_girls_separate} onChange={(n,v) => setField(n,v)} options={YN} label="बालिकाओं के लिए पृथक शौचालय" />
+          <div className="question-text">विद्यालय में शौचालय / मूत्रालय की स्थिति क्या है?</div>
+          <RadioGroup name="q23_available" value={d.q23_available} onChange={handleChange} options={YN} label="शौचालय उपलब्ध" error={errors.q23_available} required />
+          {d.q23_available === 'हाँ' && (
+            <RadioGroup name="q23_girls_separate" value={d.q23_girls_separate} onChange={(n,v) => setField(n,v)} options={YN} label="बालिकाओं के लिए पृथक शौचालय" />
+          )}
           <FloatingTextarea label="शौचालय की स्थिति / विवरण" name="q23_details"
             value={d.q23_details} onChange={(n,v) => setField(n,v)} rows={2} />
         </div>
@@ -248,12 +256,30 @@ export default function ToiletWaterSection() {
         </div>
       </div>
 
+      {/* Toilet Scheme Approval - NEW */}
+      <div className="card">
+        <div className="question-block">
+          <div className="question-number">Q23B</div>
+          <div className="question-text">क्या शौचालय किसी पूर्व योजना में स्वीकृत हुआ है?</div>
+          <RadioGroup name="q23b_approved_scheme" value={d.q23b_approved_scheme} onChange={handleChange} options={YN} error={errors.q23b_approved_scheme} required />
+
+          {d.q23b_approved_scheme === 'हाँ' && (
+            <div className="conditional-block">
+              <FloatingTextarea label="योजना का नाम एवं विवरण" name="q23b_scheme_details"
+                value={d.q23b_scheme_details} onChange={(n,v) => setField(n,v)} rows={2} />
+              <FloatingInput label="वर्तमान स्थिति" name="q23b_current_status"
+                value={d.q23b_current_status} onChange={(n,v) => setField(n,v)} />
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Q24 */}
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q24</div>
-          <div className="question-text">क्या शौचालयों में जल कनेक्शन उपलब्ध है?</div>
-          <RadioGroup name="q24" value={d.q24} onChange={(n,v) => setField(n,v)} options={YN} />
+          <div className="question-text">क्या शौचालय में नल/जल की व्यवस्था है?</div>
+          <RadioGroup name="q24" value={d.q24} onChange={handleChange} options={YN} error={errors.q24} required />
           {d.q24 === 'नहीं' && (
             <div className="conditional-block">
               <FloatingTextarea label="आवश्यकता का विवरण" name="q24_details"
@@ -267,8 +293,8 @@ export default function ToiletWaterSection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q25</div>
-          <div className="question-text">क्या विद्यालय में पेयजल स्रोत उपलब्ध है?</div>
-          <RadioGroup name="q25" value={d.q25} onChange={(n,v) => setField(n,v)} options={YN} />
+          <div className="question-text">क्या विद्यालय में पेयजल सुविधा उपलब्ध है?</div>
+          <RadioGroup name="q25" value={d.q25} onChange={handleChange} options={YN} error={errors.q25} required />
           {d.q25 === 'हाँ' && (
             <div className="conditional-block">
               <FloatingSelect label="पेयजल स्रोत" name="q25_source"
@@ -283,9 +309,9 @@ export default function ToiletWaterSection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q26</div>
-          <div className="question-text">पानी से संबंधित आ रही समस्याओं का विवरण दें।</div>
+          <div className="question-text">यदि पानी की समस्या है, तो उसका विवरण दें।</div>
           <FloatingTextarea label="पानी की समस्या का विवरण" name="q26_details"
-            value={d.q26_details} onChange={(n,v) => setField(n,v)} rows={4} />
+            value={d.q26_details} onChange={handleChange} error={errors.q26_details} required />
         </div>
       </div>
 
@@ -293,11 +319,11 @@ export default function ToiletWaterSection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q27</div>
-          <div className="question-text">क्या विद्यालय में रेन शेड है?</div>
-          <RadioGroup name="q27" value={d.q27} onChange={(n,v) => setField(n,v)} options={YN} />
+          <div className="question-text">क्या विद्यालय में टिन शेड (Tin shed) है?</div>
+          <RadioGroup name="q27" value={d.q27} onChange={handleChange} options={YN} error={errors.q27} required />
           {d.q27 === 'नहीं' && (
             <div className="conditional-block">
-              <FloatingTextarea label="रेन शेड आवश्यकता का विवरण" name="q27_details"
+              <FloatingTextarea label="टिन शेड आवश्यकता का विवरण" name="q27_details"
                 value={d.q27_details} onChange={(n,v) => setField(n,v)} />
             </div>
           )}

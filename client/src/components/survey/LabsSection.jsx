@@ -8,7 +8,13 @@ import { LAB_TYPES } from '../../utils/constants';
 export default function LabsSection() {
   const { state, setField, dispatch } = useSurvey();
   const d = state.surveyData;
+  const errors = state.errors || {};
   const YN = ['हाँ', 'नहीं'];
+
+  const handleChange = (name, value) => {
+    setField(name, value);
+    if (errors[name]) dispatch({ type: 'SET_ERRORS', errors: { ...errors, [name]: null } });
+  };
 
   const handleLabChange = (labType, field, value) => {
     setField(`q14_${labType}_${field}`, value);
@@ -25,8 +31,8 @@ export default function LabsSection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q14</div>
-          <div className="question-text">क्या विद्यालय में लैब है?</div>
-          <RadioGroup name="q14" value={d.q14} onChange={(n,v) => setField(n,v)} options={YN} />
+          <div className="question-text">क्या विद्यालय में प्रयोगशाला (Lab) उपलब्ध है?</div>
+          <RadioGroup name="q14" value={d.q14} onChange={handleChange} options={YN} error={errors.q14} required />
           {d.q14 === 'हाँ' && (
             <div className="conditional-block">
               {LAB_TYPES.map(lab => (
@@ -54,7 +60,7 @@ export default function LabsSection() {
         <div className="question-block">
           <div className="question-number">Q15</div>
           <div className="question-text">क्या लैब में पर्याप्त संसाधन / उपकरण उपलब्ध हैं?</div>
-          <RadioGroup name="q15" value={d.q15} onChange={(n,v) => setField(n,v)} options={YN} />
+          <RadioGroup name="q15" value={d.q15} onChange={handleChange} options={YN} error={errors.q15} required />
           {d.q15 === 'नहीं' && (
             <div className="conditional-block">
               <RepeatableTable

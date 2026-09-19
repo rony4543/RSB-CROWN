@@ -59,6 +59,12 @@ export default function SchoolProfile() {
             inputMode="numeric" maxLength={11}
           />
         </div>
+
+        <FloatingInput
+          label="विद्यालय कोड (School Code / शाला दर्पण कोड)" name="school_code"
+          value={school.school_code || ''} onChange={handleChange}
+          placeholder="उदा. 219154"
+        />
       </div>
 
       <div className="card">

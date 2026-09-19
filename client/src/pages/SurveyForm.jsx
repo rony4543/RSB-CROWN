@@ -14,7 +14,6 @@ import BuildingSection from '../components/survey/BuildingSection';
 import ElectricitySection from '../components/survey/ElectricitySection';
 import LabsSection from '../components/survey/LabsSection';
 import BoundarySection from '../components/survey/BoundarySection';
-import PlaygroundSection from '../components/survey/PlaygroundSection';
 import RoadSection from '../components/survey/RoadSection';
 import ToiletWaterSection from '../components/survey/ToiletWaterSection';
 import EnrollmentSection from '../components/survey/EnrollmentSection';
@@ -26,7 +25,7 @@ import RequirementsSection from '../components/survey/RequirementsSection';
 import ReviewSection from '../components/survey/ReviewSection';
 import Header from '../components/common/Header';
 
-import { validateSchoolProfile } from '../utils/validation';
+import { validateSection } from '../utils/validation';
 
 export default function SurveyForm() {
   const { id } = useParams();
@@ -64,25 +63,28 @@ export default function SurveyForm() {
   }
 
   const handleNext = async () => {
-    // Validate school profile before allowing progress
-    if (state.currentSection === 0) {
-      const errors = validateSchoolProfile(state.school);
-      if (Object.keys(errors).length > 0) {
-        dispatch({ type: 'SET_ERRORS', errors });
-        return; // Don't proceed if validation fails
-      }
-      
-      // If new survey, create it on server or fallback to local ID
-      if (!state.surveyId) {
-        try {
-          const { surveyId, schoolId } = await api.createSurvey(state.school);
-          dispatch({ type: 'SET_SURVEY_META', surveyId, schoolId, status: 'draft' });
-        } catch (err) {
-          console.warn('Server unavailable or offline, continuing in local mode:', err);
-          const localSurveyId = 'local_' + Date.now();
-          const localSchoolId = 'school_' + Date.now();
-          dispatch({ type: 'SET_SURVEY_META', surveyId: localSurveyId, schoolId: localSchoolId, status: 'draft' });
-        }
+    const currentSectionKey = SECTIONS[state.currentSection].key;
+    const errors = validateSection(currentSectionKey, state);
+
+    if (Object.keys(errors).length > 0) {
+      dispatch({ type: 'SET_ERRORS', errors });
+      // Scroll to the first error or top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return; // Block navigation
+    } else {
+      // Clear errors if valid
+      dispatch({ type: 'SET_ERRORS', errors: {} });
+    }
+
+    if (state.currentSection === 0 && !state.surveyId) {
+      try {
+        const { surveyId, schoolId } = await api.createSurvey(state.school);
+        dispatch({ type: 'SET_SURVEY_META', surveyId, schoolId, status: 'draft' });
+      } catch (err) {
+        console.warn('Server unavailable or offline, continuing in local mode:', err);
+        const localSurveyId = 'local_' + Date.now();
+        const localSchoolId = 'school_' + Date.now();
+        dispatch({ type: 'SET_SURVEY_META', surveyId: localSurveyId, schoolId: localSchoolId, status: 'draft' });
       }
     }
 
@@ -109,7 +111,6 @@ export default function SurveyForm() {
       case 'electricity': return <ElectricitySection />;
       case 'labs': return <LabsSection />;
       case 'boundary': return <BoundarySection />;
-      case 'playground': return <PlaygroundSection />;
       case 'road': return <RoadSection />;
       case 'toilet_water': return <ToiletWaterSection />;
       case 'enrollment': return <EnrollmentSection />;
@@ -164,7 +165,7 @@ export default function SurveyForm() {
                   const isLast = idx === SECTIONS.length - 1;
                   const isActive = state.currentSection === idx;
                   const isCompleted = state.currentSection > idx;
-                  const isClickable = state.surveyId || state.currentSection > 0 || idx === 0;
+                  const isClickable = idx < state.currentSection; // Only allow clicking backward
 
                   return (
                     <div
@@ -173,6 +174,7 @@ export default function SurveyForm() {
                       onClick={() => {
                         if (isClickable) {
                           dispatch({ type: 'SET_SECTION', section: idx });
+                          window.scrollTo(0, 0);
                         }
                       }}
                     >

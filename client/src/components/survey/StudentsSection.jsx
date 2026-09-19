@@ -5,9 +5,15 @@ import { useSurvey } from '../../context/SurveyContext';
 import { Plus } from 'lucide-react';
 
 export default function StudentsSection() {
-  const { state, dispatch, setField } = useSurvey();
+  const { state, setField, dispatch } = useSurvey();
   const d = state.surveyData;
+  const errors = state.errors || {};
   const YN = ['हाँ', 'नहीं'];
+
+  const handleChange = (name, value) => {
+    setField(name, value);
+    if (errors[name]) dispatch({ type: 'SET_ERRORS', errors: { ...errors, [name]: null } });
+  };
 
   return (
     <div>
@@ -87,7 +93,7 @@ export default function StudentsSection() {
         <div className="question-block">
           <div className="question-number">Q32</div>
           <div className="question-text">क्या विद्यालय में Scout Guide / NCC है?</div>
-          <RadioGroup name="q32" value={d.q32} onChange={(n,v) => setField(n,v)} options={YN} />
+          <RadioGroup name="q32" value={d.q32} onChange={handleChange} options={YN} error={errors.q32} required />
           {d.q32 === 'हाँ' && (
             <div className="conditional-block">
               <RepeatableTable

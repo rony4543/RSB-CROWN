@@ -4,9 +4,15 @@ import FloatingTextarea from '../common/FloatingTextarea';
 import { useSurvey } from '../../context/SurveyContext';
 
 export default function RoadSection() {
-  const { state, setField } = useSurvey();
+  const { state, setField, dispatch } = useSurvey();
   const d = state.surveyData;
+  const errors = state.errors || {};
   const YN = ['हाँ', 'नहीं'];
+
+  const handleChange = (name, value) => {
+    setField(name, value);
+    if (errors[name]) dispatch({ type: 'SET_ERRORS', errors: { ...errors, [name]: null } });
+  };
 
   return (
     <div>
@@ -20,7 +26,7 @@ export default function RoadSection() {
         <div className="question-block">
           <div className="question-number">Q21</div>
           <div className="question-text">क्या विद्यालय सड़क मार्ग से जुड़ा हुआ है?</div>
-          <RadioGroup name="q21" value={d.q21} onChange={(n,v) => setField(n,v)} options={YN} />
+          <RadioGroup name="q21" value={d.q21} onChange={handleChange} options={YN} error={errors.q21} required />
         </div>
 
         {d.q21 === 'नहीं' && (
@@ -28,9 +34,9 @@ export default function RoadSection() {
             <div className="question-number">Q22</div>
             <div className="question-text">निकटतम सड़क से दूरी कितनी है?</div>
             <FloatingInput label="दूरी (किलोमीटर में)" name="q22_distance"
-              value={d.q22_distance} onChange={(n,v) => setField(n,v)} type="number" inputMode="decimal" min="0" />
+              value={d.q22_distance} onChange={handleChange} type="number" min="0" step="0.1" error={errors.q22_distance} required />
             <FloatingTextarea label="सड़क/रास्ते की समस्या का विवरण" name="q22_details"
-              value={d.q22_details} onChange={(n,v) => setField(n,v)} />
+              value={d.q22_details} onChange={handleChange} />
           </div>
         )}
       </div>

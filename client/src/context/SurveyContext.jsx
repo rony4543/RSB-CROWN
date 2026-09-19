@@ -6,7 +6,7 @@ const SurveyContext = createContext(null);
 
 const initialSchool = {
   name: '', village: '', gram_panchayat: '', panchayat_samiti: '',
-  udise_code: '', principal_name: '', principal_mobile: '', principal_email: ''
+  udise_code: '', school_code: '', principal_name: '', principal_mobile: '', principal_email: ''
 };
 
 const initialState = {
@@ -21,12 +21,12 @@ const initialState = {
   errors: {},
   // Related tables
   staffPositions: STAFF_POSTS.map(p => ({ post_name: p, sanctioned: '', working: '', vacant: '', remarks: '' })),
-  staffMembers: [],
+  staffMembers: Array.from({ length: 10 }, () => ({ name: '', staff_id: '', post: '', subject: '', mobile: '', email: '' })),
   studentEnrollment: CLASSES.map(c => ({ class_name: `कक्षा ${c}`, boys: '', girls: '', total: '' })),
-  palanharStudents: [],
-  disabledStudents: [],
-  playerStudents: [],
-  scoutNccStudents: [],
+  palanharStudents: Array.from({ length: 10 }, () => ({ student_name:'', class_name:'', palanhar_number:'', palanhar_category:'' })),
+  disabledStudents: Array.from({ length: 10 }, () => ({ student_name:'', class_name:'', disability_type:'', percentage:'', certificate_number:'' })),
+  playerStudents: Array.from({ length: 10 }, () => ({ student_name:'', class_name:'', sport:'', level:'' })),
+  scoutNccStudents: Array.from({ length: 10 }, () => ({ student_name:'', class_name:'', level:'', details:'' })),
   labs: [],
   labRequirements: [],
   committeeMembers: [],
@@ -89,7 +89,8 @@ function reducer(state, action) {
         school: {
           name: action.data.school_name || '', village: action.data.village || '',
           gram_panchayat: action.data.gram_panchayat || '', panchayat_samiti: action.data.panchayat_samiti || '',
-          udise_code: action.data.udise_code || '', principal_name: action.data.principal_name || '',
+          udise_code: action.data.udise_code || '', school_code: action.data.school_code || '',
+          principal_name: action.data.principal_name || '',
           principal_mobile: action.data.principal_mobile || '', principal_email: action.data.principal_email || ''
         },
         surveyData: action.data.survey_data || {},
@@ -98,14 +99,24 @@ function reducer(state, action) {
         staffPositions: action.data.staff_positions?.length > 0
           ? action.data.staff_positions
           : STAFF_POSTS.map(p => ({ post_name: p, sanctioned: '', working: '', vacant: '', remarks: '' })),
-        staffMembers: action.data.staff_members || [],
+        staffMembers: action.data.staff_members?.length > 0 
+          ? action.data.staff_members 
+          : Array.from({ length: 10 }, () => ({ name: '', staff_id: '', post: '', subject: '', mobile: '', email: '' })),
         studentEnrollment: action.data.student_enrollment?.length > 0
           ? action.data.student_enrollment
           : CLASSES.map(c => ({ class_name: `कक्षा ${c}`, boys: '', girls: '', total: '' })),
-        palanharStudents: action.data.palanhar_students || [],
-        disabledStudents: action.data.disabled_students || [],
-        playerStudents: action.data.player_students || [],
-        scoutNccStudents: action.data.scout_ncc_students || [],
+        palanharStudents: action.data.palanhar_students?.length > 0
+          ? action.data.palanhar_students
+          : Array.from({ length: 10 }, () => ({ student_name:'', class_name:'', palanhar_number:'', palanhar_category:'' })),
+        disabledStudents: action.data.disabled_students?.length > 0
+          ? action.data.disabled_students
+          : Array.from({ length: 10 }, () => ({ student_name:'', class_name:'', disability_type:'', percentage:'', certificate_number:'' })),
+        playerStudents: action.data.player_students?.length > 0
+          ? action.data.player_students
+          : Array.from({ length: 10 }, () => ({ student_name:'', class_name:'', sport:'', level:'' })),
+        scoutNccStudents: action.data.scout_ncc_students?.length > 0
+          ? action.data.scout_ncc_students
+          : Array.from({ length: 10 }, () => ({ student_name:'', class_name:'', level:'', details:'' })),
         labs: action.data.labs || [],
         labRequirements: action.data.lab_requirements || [],
         committeeMembers: action.data.committee_members || [],

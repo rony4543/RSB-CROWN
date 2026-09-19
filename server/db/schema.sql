@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS schools (
   gram_panchayat TEXT,
   panchayat_samiti TEXT,
   udise_code TEXT UNIQUE,
+  school_code TEXT,
   principal_name TEXT,
   principal_mobile TEXT,
   principal_email TEXT,
@@ -44,9 +45,9 @@ CREATE TABLE IF NOT EXISTS staff_positions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   survey_id TEXT NOT NULL,
   post_name TEXT NOT NULL,
-  sanctioned INTEGER DEFAULT 0,
-  working INTEGER DEFAULT 0,
-  vacant INTEGER DEFAULT 0,
+  sanctioned TEXT DEFAULT 'नहीं',
+  working TEXT DEFAULT 'नहीं',
+  vacant TEXT DEFAULT 'नहीं',
   remarks TEXT,
   FOREIGN KEY (survey_id) REFERENCES survey_responses(id)
 );
@@ -58,6 +59,7 @@ CREATE TABLE IF NOT EXISTS staff_members (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   survey_id TEXT NOT NULL,
   name TEXT NOT NULL,
+  staff_id TEXT,
   post TEXT,
   subject TEXT,
   mobile TEXT,

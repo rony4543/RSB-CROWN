@@ -4,9 +4,15 @@ import FloatingTextarea from '../common/FloatingTextarea';
 import { useSurvey } from '../../context/SurveyContext';
 
 export default function BoundarySection() {
-  const { state, setField } = useSurvey();
+  const { state, setField, dispatch } = useSurvey();
   const d = state.surveyData;
+  const errors = state.errors || {};
   const YN = ['हाँ', 'नहीं'];
+
+  const handleChange = (name, value) => {
+    setField(name, value);
+    if (errors[name]) dispatch({ type: 'SET_ERRORS', errors: { ...errors, [name]: null } });
+  };
 
   return (
     <div>
@@ -18,8 +24,8 @@ export default function BoundarySection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q16</div>
-          <div className="question-text">विद्यालय में चारदीवारी बनी हुई है?</div>
-          <RadioGroup name="q16" value={d.q16} onChange={(n,v) => setField(n,v)} options={YN} />
+          <div className="question-text">क्या विद्यालय में चारदीवारी (Boundary Wall) उपलब्ध है?</div>
+          <RadioGroup name="q16" value={d.q16} onChange={handleChange} options={YN} error={errors.q16} required />
         </div>
 
         {d.q16 === 'नहीं' && (

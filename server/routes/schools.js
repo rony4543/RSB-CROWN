@@ -7,7 +7,7 @@ router.get('/', (req, res) => {
     const { search, village, page = 1, limit = 20 } = req.query;
     let query = 'SELECT * FROM schools WHERE 1=1';
     const params = [];
-    if (search) { query += ' AND (name LIKE ? OR udise_code LIKE ? OR village LIKE ?)'; params.push(`%${search}%`, `%${search}%`, `%${search}%`); }
+    if (search) { query += ' AND (name LIKE ? OR udise_code LIKE ? OR school_code LIKE ? OR village LIKE ?)'; params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`); }
     if (village) { query += ' AND village LIKE ?'; params.push(`%${village}%`); }
     query += ' ORDER BY updated_at DESC LIMIT ? OFFSET ?';
     params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));

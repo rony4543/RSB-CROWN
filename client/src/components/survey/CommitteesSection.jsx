@@ -5,6 +5,7 @@ import { Trash2, Plus } from 'lucide-react';
 
 export default function CommitteesSection() {
   const { state, dispatch } = useSurvey();
+  const errors = state.errors || {};
 
   return (
     <div>
@@ -17,7 +18,8 @@ export default function CommitteesSection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q36</div>
-          <div className="question-text">विद्यालय विकास प्रबंधन स्थिति</div>
+          <div className="question-text">विद्यालय विकास प्रबंधन स्थिति <span className="required-mark">*</span></div>
+          {errors.q36 && <div className="field-error" style={{marginBottom: '10px'}}>⚠ {errors.q36}</div>}
           <RepeatableTable
             columns={[
               { key: 'name', label: 'नाम' },
@@ -46,7 +48,7 @@ export default function CommitteesSection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q37</div>
-          <div className="question-text">सरपंच और वार्ड पंच की सूचना नाम व मोबाइल नंबर सहित दें।</div>
+          <div className="question-text">सरपंच और वार्ड पंच की सूचना नाम व मोबाइल नंबर सहित दें। <span className="required-mark">*</span></div>
 
           <h4 className="text-sm font-bold mb-4" style={{color: 'var(--primary-700)'}}>सरपंच</h4>
           {(() => {
@@ -54,10 +56,11 @@ export default function CommitteesSection() {
             const updateSarpanch = (field, value) => {
               const others = state.panchayatMembers.filter(m => m.member_type !== 'sarpanch');
               dispatch({ type: 'SET_PANCHAYAT', payload: [...others, { ...sarpanch, [field]: value }] });
+              if (errors.q37_sarpanch) dispatch({ type: 'SET_ERRORS', errors: { ...errors, q37_sarpanch: null } });
             };
             return (
               <div className="inline-fields">
-                <FloatingInput label="सरपंच का नाम" name="sarpanch_name" value={sarpanch.name} onChange={(_, v) => updateSarpanch('name', v)} />
+                <FloatingInput label="सरपंच का नाम" name="sarpanch_name" value={sarpanch.name} onChange={(_, v) => updateSarpanch('name', v)} error={errors.q37_sarpanch} required />
                 <FloatingInput label="मोबाइल नंबर" name="sarpanch_mobile" value={sarpanch.mobile} onChange={(_, v) => updateSarpanch('mobile', v)} type="tel" inputMode="numeric" maxLength={10} />
               </div>
             );
@@ -92,7 +95,8 @@ export default function CommitteesSection() {
       <div className="card">
         <div className="question-block">
           <div className="question-number">Q38</div>
-          <div className="question-text">SMC / SDMC / अन्य कार्यकारिणी सदस्यों का विवरण।</div>
+          <div className="question-text">SMC / SDMC / अन्य कार्यकारिणी सदस्यों का विवरण। <span className="required-mark">*</span></div>
+          {errors.q38 && <div className="field-error" style={{marginBottom: '10px'}}>⚠ {errors.q38}</div>}
           <RepeatableTable
             columns={[
               { key: 'name', label: 'नाम' },

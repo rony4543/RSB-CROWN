@@ -550,15 +550,17 @@ img { max-width: 100%; }
 /* Select */
 .floating-field select.field-input {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2716%27%20height%3D%2716%27%20viewBox%3D%270%200%24%2024%27%20fill%3D%27none%27%20stroke%3D%27%236b7280%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27m6%209%206%206%206-6%27%2F%3E%3C%2Fsvg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
+  background-size: 16px;
   padding-right: var(--space-10);
   cursor: pointer;
 }
 
 .floating-field select.field-input:focus {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232563a8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2716%27%20height%3D%2716%27%20viewBox%3D%270%200%24%2024%27%20fill%3D%27none%27%20stroke%3D%27%232563a8%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27m6%209%206%206%206-6%27%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
 }
 
 /* Always float the label for select */
@@ -1915,3 +1917,195 @@ img { max-width: 100%; }
     padding: var(--space-4);
   }
 }
+
+/* ============================================
+   QUESTION 9 ADMIN HIGHLIGHT & RATIO MANAGEMENT
+   ============================================ */
+.card-highlighted-admin {
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  border: 2px solid var(--primary-500);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  box-shadow: 0 6px 20px rgba(37, 99, 168, 0.12);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.admin-header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--primary-700), var(--primary-900));
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 6px rgba(13, 27, 62, 0.2);
+  margin-bottom: 12px;
+}
+
+.admin-guidance-banner {
+  background: var(--primary-50);
+  border-left: 4px solid var(--primary-500);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--primary-900);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.rooms-summary-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.ratio-management-card {
+  background: #ffffff;
+  border: 1.5px solid var(--accent-300);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin: 18px 0;
+  box-shadow: 0 2px 10px rgba(245, 124, 0, 0.06);
+}
+
+.ratio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ratio-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent-700);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ratio-badge {
+  background: var(--accent-100);
+  color: var(--accent-700);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ratio-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ratio-stat-box {
+  background: #fafafa;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.ratio-stat-box.highlight {
+  background: var(--accent-50);
+  border-color: var(--accent-300);
+}
+
+.ratio-stat-box.target {
+  background: var(--primary-50);
+  border-color: var(--primary-300);
+}
+
+.ratio-stat-box .stat-label {
+  font-size: 11px;
+  color: var(--gray-600);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.ratio-stat-box .stat-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.repair-building-card {
+  background: #fefce8;
+  border: 1.5px solid var(--warning-400);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 18px;
+}
+
+/* Yes / No Toggle Pill Buttons for Staff Table */
+.yn-pill-group {
+  display: inline-flex;
+  border-radius: 8px;
+  background: #f1f5f9;
+  padding: 3px;
+  border: 1px solid #e2e8f0;
+  gap: 3px;
+}
+
+.yn-pill-btn {
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  line-height: 1.2;
+}
+
+.yn-pill-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05);
+  color: #334155;
+}
+
+.yn-pill-btn.active-yes {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.35);
+}
+
+.yn-pill-btn.active-no {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.35);
+}
+
+.yn-pill-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.post-name-text {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e293b;
+  line-height: 1.45;
+  white-space: normal;
+  word-break: break-word;
+}
+
+

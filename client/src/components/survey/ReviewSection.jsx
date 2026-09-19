@@ -3,6 +3,7 @@ import { SECTIONS } from '../../utils/constants';
 import { CheckCircle, AlertTriangle, Edit3 } from 'lucide-react';
 import { useState } from 'react';
 import { api } from '../../services/api';
+import { validateSection } from '../../utils/validation';
 
 export default function ReviewSection() {
   const { state, dispatch, goToSection, saveToServer } = useSurvey();
@@ -13,8 +14,8 @@ export default function ReviewSection() {
 
   const totalBoys = studentEnrollment.reduce((s, r) => s + (parseInt(r.boys) || 0), 0);
   const totalGirls = studentEnrollment.reduce((s, r) => s + (parseInt(r.girls) || 0), 0);
-  const totalStaff = staffPositions.reduce((s, r) => s + (parseInt(r.working) || 0), 0);
-  const totalVacant = staffPositions.reduce((s, r) => s + (parseInt(r.vacant) || 0), 0);
+  const totalStaff = staffPositions.filter(r => r.working === 'हाँ' || parseInt(r.working) > 0).length;
+  const totalVacant = staffPositions.filter(r => (r.sanctioned === 'हाँ' && r.working !== 'हाँ') || parseInt(r.vacant) > 0).length;
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -143,6 +144,7 @@ export default function ReviewSection() {
           <ReviewRow label="ग्राम पंचायत" value={school.gram_panchayat} />
           <ReviewRow label="पंचायत समिति" value={school.panchayat_samiti} />
           <ReviewRow label="UDISE CODE" value={school.udise_code} />
+          {school.school_code && <ReviewRow label="विद्यालय कोड" value={school.school_code} />}
           <ReviewRow label="संस्थाप्रधान" value={school.principal_name} />
           <ReviewRow label="मोबाइल" value={school.principal_mobile} />
         </div>
@@ -155,7 +157,40 @@ export default function ReviewSection() {
         </div>
         <div className="review-section-body">
           <ReviewRow label="Q1 — विद्यालय का प्रकार" value={d.q1} />
+          {d.q1 === 'उच्च माध्यमिक विद्यालय' && (
+            <>
+              <ReviewRow 
+                label="Q2 — विद्यालय का संकाय" 
+                value={
+                  typeof d.q2 === 'object' && d.q2 !== null
+                    ? Object.entries(d.q2).map(([fac, subs]) => `${fac}: ${subs.length ? subs.join(', ') : 'कोई विषय नहीं'}`).join(' | ')
+                    : d.q2
+                } 
+              />
+              {['कला', 'विज्ञान', 'कृषि', 'वाणिज्य', 'व्यावसायिक'].map(sub => d[`q3_${sub}`] ? (
+                <ReviewRow key={sub} label={`Q3 — ${sub} विषय`} value={d[`q3_${sub}`]} />
+              ) : null)}
+            </>
+          )}
           <ReviewRow label="Q4 — PM Shri / MGGS" value={d.q4} />
+          <ReviewRow
+            label="Q9 — वर्तमान उपलब्ध कुल कक्ष"
+            value={d.q9_existing_rooms !== undefined && d.q9_existing_rooms !== ''
+              ? `${d.q9_existing_rooms} कक्ष ${d.q9_rooms_upto_2023 || d.q9_new_rooms_after_2023 ? `(2023 तक: ${d.q9_rooms_upto_2023 || 0}, 2023 बाद नए: ${d.q9_new_rooms_after_2023 || 0})` : ''}`
+              : '—'}
+          />
+          <ReviewRow
+            label="Q9 — छात्रानुपात में अतिरिक्त कक्ष"
+            value={d.q9_additional_rooms !== undefined && d.q9_additional_rooms !== ''
+              ? `${d.q9_additional_rooms} कक्ष (मानक: 30 छात्र/कक्ष)`
+              : '—'}
+          />
+          <ReviewRow
+            label="Q9 — मरम्मत योग्य भवन संख्या"
+            value={d.q9_repairable_buildings_count !== undefined && d.q9_repairable_buildings_count !== ''
+              ? `${d.q9_repairable_buildings_count} भवन${d.q9_condition ? ` — ${d.q9_condition}` : ''}`
+              : (d.q9_condition || '—')}
+          />
           <ReviewRow label="Q9A — जर्जर भवन" value={d.q9a_dilapidated === 'हाँ' ? `हाँ — ${d.q9a_dilapidated_count || '?'} भवन` : d.q9a_dilapidated} />
           <ReviewRow label="Q11 — बिजली" value={d.q11_electricity} />
           <ReviewRow label="Q12 — कम्प्यूटर" value={d.q12_total ? `कुल: ${d.q12_total}, कार्यशील: ${d.q12_working || 0}` : '—'} />
@@ -193,7 +228,21 @@ export default function ReviewSection() {
       </div>
 
       <div style={{textAlign:'center', padding: '24px 0'}}>
-        <button className="btn btn-lg btn-accent" onClick={() => setShowConfirm(true)}>
+        <button className="btn btn-lg btn-accent" onClick={() => {
+          // Validate entire form before allowing submit
+          for (let i = 0; i < SECTIONS.length - 1; i++) {
+            const sectionKey = SECTIONS[i].key;
+            const errors = validateSection(sectionKey, state);
+            if (Object.keys(errors).length > 0) {
+              dispatch({ type: 'SET_ERRORS', errors });
+              goToSection(i);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              alert(`कृपया "${SECTIONS[i].title}" भाग में सभी अनिवार्य जानकारी भरें।`);
+              return;
+            }
+          }
+          setShowConfirm(true);
+        }}>
           सर्वे जमा करें
         </button>
       </div>

@@ -16,15 +16,15 @@ router.post('/', (req, res) => {
     if (existingSchool) {
       schoolId = existingSchool.id;
       dbRun(`UPDATE schools SET name=?, village=?, gram_panchayat=?, panchayat_samiti=?,
-        principal_name=?, principal_mobile=?, principal_email=?, updated_at=datetime('now')
+        school_code=?, principal_name=?, principal_mobile=?, principal_email=?, updated_at=datetime('now')
         WHERE id=?`,
         [school.name, school.village, school.gram_panchayat, school.panchayat_samiti,
-         school.principal_name, school.principal_mobile, school.principal_email, schoolId]);
+         school.school_code || '', school.principal_name, school.principal_mobile, school.principal_email, schoolId]);
     } else {
-      dbRun(`INSERT INTO schools (id, name, village, gram_panchayat, panchayat_samiti, udise_code, principal_name, principal_mobile, principal_email)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      dbRun(`INSERT INTO schools (id, name, village, gram_panchayat, panchayat_samiti, udise_code, school_code, principal_name, principal_mobile, principal_email)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [schoolId, school.name, school.village, school.gram_panchayat, school.panchayat_samiti,
-         school.udise_code, school.principal_name, school.principal_mobile, school.principal_email]);
+         school.udise_code, school.school_code || '', school.principal_name, school.principal_mobile, school.principal_email]);
     }
 
     const surveyId = uuidv4();
@@ -81,7 +81,7 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   try {
     const survey = dbGet(`SELECT sr.*, s.name as school_name, s.village, s.gram_panchayat,
-      s.panchayat_samiti, s.udise_code, s.principal_name, s.principal_mobile, s.principal_email
+      s.panchayat_samiti, s.udise_code, s.school_code, s.principal_name, s.principal_mobile, s.principal_email
       FROM survey_responses sr JOIN schools s ON sr.school_id = s.id WHERE sr.id = ?`, [req.params.id]);
 
     if (!survey) return res.status(404).json({ error: 'सर्वे नहीं मिला।' });
@@ -123,10 +123,10 @@ router.put('/:id', (req, res) => {
 
     if (school) {
       dbRun(`UPDATE schools SET name=?, village=?, gram_panchayat=?, panchayat_samiti=?,
-        udise_code=?, principal_name=?, principal_mobile=?, principal_email=?, updated_at=datetime('now')
+        udise_code=?, school_code=?, principal_name=?, principal_mobile=?, principal_email=?, updated_at=datetime('now')
         WHERE id=?`,
         [school.name, school.village, school.gram_panchayat, school.panchayat_samiti,
-         school.udise_code, school.principal_name, school.principal_mobile, school.principal_email,
+         school.udise_code, school.school_code || '', school.principal_name, school.principal_mobile, school.principal_email,
          survey.school_id]);
     }
 
@@ -147,11 +147,11 @@ router.put('/:id', (req, res) => {
 
     replaceRelated('staff_positions', staff_positions,
       'INSERT INTO staff_positions (survey_id, post_name, sanctioned, working, vacant, remarks) VALUES (?,?,?,?,?,?)',
-      r => [req.params.id, r.post_name, r.sanctioned||0, r.working||0, r.vacant||0, r.remarks||'']);
+      r => [req.params.id, r.post_name, r.sanctioned||'', r.working||'', r.vacant||'', r.remarks||'']);
 
     replaceRelated('staff_members', staff_members,
-      'INSERT INTO staff_members (survey_id, name, post, subject, mobile, email) VALUES (?,?,?,?,?,?)',
-      r => [req.params.id, r.name, r.post, r.subject, r.mobile, r.email]);
+      'INSERT INTO staff_members (survey_id, name, staff_id, post, subject, mobile, email) VALUES (?,?,?,?,?,?,?)',
+      r => [req.params.id, r.name, r.staff_id||'', r.post, r.subject, r.mobile, r.email]);
 
     replaceRelated('student_enrollment', student_enrollment,
       'INSERT INTO student_enrollment (survey_id, class_name, boys, girls, total) VALUES (?,?,?,?,?)',
