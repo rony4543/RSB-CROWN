@@ -138,78 +138,44 @@ export default function SurveyForm() {
         <div className="survey-layout">
         {/* Main Content Area (Full Page) */}
         <div className="survey-content-area">
-          {/* Stepper Progress Bar */}
-          <div className="survey-stepper-container">
+          {/* Gaming Style Progress Bar */}
+          <div className="gaming-stepper-container">
             {/* Header info bar */}
-            <div className="stepper-meta-bar">
-              <div className="stepper-section-info">
-                <span className="stepper-step-badge">
-                  भाग {state.currentSection + 1} / {SECTIONS.length}
-                </span>
-                <span className="stepper-section-title">
-                  {SECTIONS[state.currentSection].title}
-                </span>
+            <div className="gaming-meta-bar">
+              <div className="gaming-level-badge">
+                STAGE {state.currentSection + 1}
               </div>
-              <div className="stepper-progress-percentage">
-                {Math.round(((state.currentSection + 1) / SECTIONS.length) * 100)}% पूर्ण
+              <div className="gaming-mission-title">
+                {SECTIONS[state.currentSection].title}
+              </div>
+              <div className="gaming-completion-stats">
+                {Math.round(((state.currentSection + 1) / SECTIONS.length) * 100)}%
               </div>
             </div>
 
-            {/* Stepper nodes track */}
-            <div className="stepper-track-container">
-              {/* Background track line */}
-              <div className="stepper-track-bg">
-                <div 
-                  className="stepper-track-fill"
-                  style={{ width: `${(state.currentSection / (SECTIONS.length - 1)) * 100}%` }}
-                />
-              </div>
+            {/* Segmented Energy Track */}
+            <div className="energy-track">
+              {SECTIONS.map((section, idx) => {
+                const isActive = state.currentSection === idx;
+                const isCompleted = state.currentSection > idx;
+                const isClickable = idx < state.currentSection; // Only allow clicking backward
 
-              {/* Step dots & circles */}
-              <div className="stepper-nodes">
-                {SECTIONS.map((section, idx) => {
-                  const isFirst = idx === 0;
-                  const isLast = idx === SECTIONS.length - 1;
-                  const isActive = state.currentSection === idx;
-                  const isCompleted = state.currentSection > idx;
-                  const isClickable = idx < state.currentSection; // Only allow clicking backward
-
-                  return (
-                    <div
-                      key={section.id}
-                      className={`stepper-node-wrapper ${isClickable ? 'clickable' : ''}`}
-                      onClick={() => {
-                        if (isClickable) {
-                          dispatch({ type: 'SET_SECTION', section: idx });
-                          window.scrollTo(0, 0);
-                        }
-                      }}
-                    >
-                      {/* Tooltip */}
-                      <span className="stepper-tooltip">
-                        {idx + 1}. {section.shortTitle}
-                      </span>
-
-                      {/* Node circle or dot */}
-                      {isFirst ? (
-                        <div className={`stepper-numbered-circle ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
-                          {isCompleted && !isActive ? <Check size={14} strokeWidth={3} /> : '1'}
-                        </div>
-                      ) : isLast ? (
-                        <div className={`stepper-numbered-circle ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
-                          {isCompleted && !isActive ? <Check size={14} strokeWidth={3} /> : SECTIONS.length}
-                        </div>
-                      ) : isActive ? (
-                        <div className="stepper-numbered-circle active middle-active">
-                          {idx + 1}
-                        </div>
-                      ) : (
-                        <div className={`stepper-dot ${isCompleted ? 'completed' : ''}`} />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                return (
+                  <div
+                    key={section.id}
+                    className={`energy-segment ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''} ${isClickable ? 'clickable' : ''}`}
+                    onClick={() => {
+                      if (isClickable) {
+                        dispatch({ type: 'SET_SECTION', section: idx });
+                        window.scrollTo(0, 0);
+                      }
+                    }}
+                    title={`${idx + 1}. ${section.shortTitle}`}
+                  >
+                    {isActive && <div className="energy-glow-pulse" />}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

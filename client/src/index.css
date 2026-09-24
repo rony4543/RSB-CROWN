@@ -1652,6 +1652,112 @@ img { max-width: 100%; }
 }
 
 /* ============================================
+   GAMING XP PROGRESS BAR
+   ============================================ */
+.gaming-stepper-container {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-6);
+  margin-bottom: var(--space-6);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.gaming-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.gaming-level-badge {
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(37, 99, 168, 0.4);
+}
+
+.gaming-mission-title {
+  flex: 1;
+  margin: 0 var(--space-4);
+  font-weight: 600;
+  color: var(--gray-800);
+  font-size: var(--font-base);
+}
+
+.gaming-completion-stats {
+  font-weight: 800;
+  color: var(--primary-600);
+  font-size: var(--font-base);
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 8px rgba(37, 99, 168, 0.2);
+}
+
+.energy-track {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  height: 8px; /* Extremely slim profile */
+  align-items: center;
+}
+
+.energy-segment {
+  flex: 1;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: not-allowed;
+  position: relative;
+}
+
+.energy-segment.completed {
+  background: var(--primary-400);
+  box-shadow: 0 0 6px rgba(74, 130, 192, 0.4);
+}
+
+.energy-segment.active {
+  background: var(--primary-600);
+  box-shadow: 0 0 12px rgba(30, 77, 138, 0.6);
+  transform: scaleY(1.6); /* Pops out vertically like a gaming node */
+  border-radius: 4px;
+}
+
+.energy-segment.clickable {
+  cursor: pointer;
+}
+
+.energy-segment.clickable:hover {
+  background: var(--primary-300);
+  transform: scaleY(1.3);
+}
+
+/* Pulsing effect on the active node */
+.energy-glow-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 4px;
+  background: #fff;
+  opacity: 0.8;
+  animation: energy-pulse 1.5s infinite;
+}
+
+@keyframes energy-pulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* ============================================
    SURVEY STEPPER UX
    ============================================ */
 .survey-stepper-container {
