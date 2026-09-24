@@ -417,12 +417,14 @@ img { max-width: 100%; }
    CARDS
    ============================================ */
 .card {
-  background: var(--white);
-  border: 1px solid var(--gray-200);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   margin-bottom: var(--space-6);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .card-header {
@@ -1597,10 +1599,12 @@ img { max-width: 100%; }
   align-items: center;
   margin-bottom: var(--space-6);
   padding: var(--space-4);
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--gray-200);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .survey-breadcrumb {
@@ -1888,7 +1892,7 @@ img { max-width: 100%; }
 }
 
 .survey-content-inner {
-  background: var(--white);
+  background: transparent;
   padding: var(--space-8);
   margin: 0 auto;
 }
@@ -1898,9 +1902,12 @@ img { max-width: 100%; }
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4) var(--space-6);
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--gray-200);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   margin: var(--space-6) 0 var(--space-10) 0;
   gap: var(--space-4);
 }
