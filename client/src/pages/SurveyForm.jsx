@@ -82,6 +82,10 @@ export default function SurveyForm() {
         const { surveyId, schoolId } = await api.createSurvey(state.school);
         dispatch({ type: 'SET_SURVEY_META', surveyId, schoolId, status: 'draft' });
       } catch (err) {
+        if (err.message && err.message.includes('एक अकाउंट से केवल एक ही')) {
+          alert(err.message);
+          return; // Block progression
+        }
         console.warn('Server unavailable or offline, continuing in local mode:', err);
         const localSurveyId = 'local_' + Date.now();
         const localSchoolId = 'school_' + Date.now();

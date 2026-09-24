@@ -6,6 +6,14 @@ const { v4: uuidv4 } = require('uuid');
 // Create new survey (draft)
 router.post('/', (req, res) => {
   try {
+    const userEmail = req.user?.email || 'unknown';
+    
+    // Rule: One account = One Survey Form
+    const existingSurvey = dbGet('SELECT id FROM survey_responses WHERE submitted_by = ?', [userEmail]);
+    if (existingSurvey && userEmail !== 'unknown') {
+      return res.status(403).json({ error: 'एक अकाउंट से केवल एक ही स्कूल का फॉर्म भरा जा सकता है। कृपया नए स्कूल के लिए नया अकाउंट बनाएं।' });
+    }
+
     const { school } = req.body;
     let schoolId = uuidv4();
 
@@ -28,8 +36,8 @@ router.post('/', (req, res) => {
     }
 
     const surveyId = uuidv4();
-    dbRun(`INSERT INTO survey_responses (id, school_id, status, survey_data) VALUES (?, ?, 'draft', '{}')`,
-      [surveyId, schoolId]);
+    dbRun(`INSERT INTO survey_responses (id, school_id, status, survey_data, submitted_by) VALUES (?, ?, 'draft', '{}', ?)`,
+      [surveyId, schoolId, userEmail]);
 
     dbRun(`INSERT INTO survey_audit_logs (survey_id, action, details) VALUES (?, 'created', 'Survey draft created')`,
       [surveyId]);
