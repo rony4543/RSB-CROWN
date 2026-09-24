@@ -126,15 +126,16 @@ export default function SurveyForm() {
   };
 
   return (
-    <div className="survey-container" style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
+    <div className="survey-container">
       {/* 21st.dev Gradient Background */}
-      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none' }}>
         <GradientBackground />
       </div>
 
-      <Header />
+      <div style={{ position: 'relative', zIndex: 10 }}>
+        <Header />
 
-      <div className="survey-layout">
+        <div className="survey-layout">
         {/* Main Content Area (Full Page) */}
         <div className="survey-content-area">
           {/* Stepper Progress Bar */}
@@ -239,6 +240,7 @@ export default function SurveyForm() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
