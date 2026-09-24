@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api } from '../services/api';
 
 function triggerDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
