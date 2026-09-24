@@ -1,13 +1,22 @@
 import { supabaseApi } from './supabaseApi';
+import { supabase } from './supabase';
 
-// Set to true to use Supabase cloud database directly
-const USE_SUPABASE = true;
+// Set to false to enforce authentication and route through our secure server
+const USE_SUPABASE = false;
 const API_BASE = 'http://localhost:3001/api';
 
 async function fetchApi(url, options = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  
+  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE}${url}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
     ...options,
+    headers,
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({ error: 'Network error' }));

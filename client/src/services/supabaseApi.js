@@ -68,9 +68,18 @@ export const supabaseApi = {
     }
 
     const surveyId = generateId();
+
+    // Get current user for user_id association
+    let userId = null;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id || null;
+    } catch (_) { /* ignore if auth not available */ }
+
     const { error: surveyErr } = await supabase.from('survey_responses').insert({
       id: surveyId,
       school_id: schoolId,
+      user_id: userId,
       status: 'draft',
       survey_data: {},
       current_section: 0,

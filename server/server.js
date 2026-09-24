@@ -7,6 +7,7 @@ const schoolRoutes = require('./routes/schools');
 const worksRoutes = require('./routes/works');
 const dashboardRoutes = require('./routes/dashboard');
 const exportRoutes = require('./routes/export');
+const { requireAuth } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -23,11 +24,11 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
 
 // API Routes
-app.use('/api/surveys', surveyRoutes);
-app.use('/api/schools', schoolRoutes);
-app.use('/api/works', worksRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/export', exportRoutes);
+app.use('/api/surveys', requireAuth, surveyRoutes);
+app.use('/api/schools', requireAuth, schoolRoutes);
+app.use('/api/works', requireAuth, worksRoutes);
+app.use('/api/dashboard', requireAuth, dashboardRoutes);
+app.use('/api/export', requireAuth, exportRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
