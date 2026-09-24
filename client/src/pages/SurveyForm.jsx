@@ -126,7 +126,7 @@ export default function SurveyForm() {
   };
 
   return (
-    <div className="survey-container" style={{ position: 'relative', minHeight: '100vh' }}>
+    <div className="survey-container" style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
       {/* 21st.dev Gradient Background */}
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
         <GradientBackground />
