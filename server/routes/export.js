@@ -26,6 +26,31 @@ router.get('/surveys/all', (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: 'त्रुटि हुई।' }); }
 });
 
+router.get('/surveys/full-dump', (req, res) => {
+  try {
+    // Fetch all surveys with their full JSON data and school details
+    const data = dbAll(`
+      SELECT sr.*, s.name as school_name, s.village, s.gram_panchayat,
+      s.panchayat_samiti, s.udise_code, s.school_code, s.principal_name, 
+      s.principal_mobile, s.principal_email
+      FROM survey_responses sr 
+      JOIN schools s ON sr.school_id = s.id 
+      ORDER BY sr.created_at DESC
+    `);
+    
+    // Parse survey_data for each row
+    const parsedData = data.map(row => {
+      row.survey_data = JSON.parse(row.survey_data || '{}');
+      return row;
+    });
+
+    res.json({ surveys: parsedData });
+  } catch (err) { 
+    console.error(err); 
+    res.status(500).json({ error: 'त्रुटि हुई।' }); 
+  }
+});
+
 router.get('/works/all', (req, res) => {
   try {
     res.json({ works: dbAll(`SELECT w.*, s.name as school_name, s.village, s.udise_code

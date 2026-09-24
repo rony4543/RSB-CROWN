@@ -4,6 +4,7 @@ import { CheckCircle, AlertTriangle, ChevronRight, ChevronLeft, Save, Check } fr
 import { useSurvey } from '../context/SurveyContext';
 import { SECTIONS } from '../utils/constants';
 import { api } from '../services/api';
+import { GradientBackground } from '../components/ui/favorites';
 
 // Components
 import SchoolProfile from '../components/survey/SchoolProfile';
@@ -125,7 +126,12 @@ export default function SurveyForm() {
   };
 
   return (
-    <div className="survey-container">
+    <div className="survey-container" style={{ position: 'relative', minHeight: '100vh' }}>
+      {/* 21st.dev Gradient Background */}
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+        <GradientBackground />
+      </div>
+
       <Header />
 
       <div className="survey-layout">
