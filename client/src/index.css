@@ -178,7 +178,7 @@ img { max-width: 100%; }
 }
 
 .header-title {
-  font-size: var(--font-xl);
+  font-size: var(--font-2xl);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -1452,7 +1452,7 @@ img { max-width: 100%; }
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .header-title { font-size: var(--font-lg); }
+  .header-title { font-size: var(--font-xl); }
   .header-subtitle { display: none; }
 
   .repeatable-table {
