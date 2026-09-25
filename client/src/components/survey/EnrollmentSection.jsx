@@ -21,7 +21,6 @@ export default function EnrollmentSection() {
   const schoolType = state.surveyData.q1 || 'उच्च माध्यमिक विद्यालय';
   let maxClasses = 12;
   if (schoolType === 'प्राथमिक विद्यालय') maxClasses = 5;
-  else if (schoolType === 'उच्च प्राथमिक विद्यालय') maxClasses = 8;
   else if (schoolType === 'माध्यमिक विद्यालय') maxClasses = 10;
 
   const visibleEnrollment = studentEnrollment.slice(0, maxClasses);

@@ -202,11 +202,7 @@ export default function SurveyForm() {
                 <button className="btn btn-primary" onClick={handleNext}>
                   अगला <ChevronRight size={20} />
                 </button>
-              ) : (
-                <button className="btn btn-accent" onClick={() => saveToServer()}>
-                  ड्राफ्ट सेव करें
-                </button>
-              )}
+              ) : null}
             </div>
           )}
         </div>

@@ -211,7 +211,6 @@ export default function Dashboard() {
                 >
                   <option value="All">सभी विद्यालय</option>
                   <option value="प्राथमिक विद्यालय">प्राथमिक</option>
-                  <option value="उच्च प्राथमिक विद्यालय">उच्च प्राथमिक</option>
                   <option value="माध्यमिक विद्यालय">माध्यमिक</option>
                   <option value="उच्च माध्यमिक विद्यालय">उच्च माध्यमिक</option>
                 </select>

@@ -31,7 +31,6 @@ export default function ExamsSection() {
   const schoolType = state.surveyData.q1 || 'उच्च माध्यमिक विद्यालय';
   let maxExams = 4;
   if (schoolType === 'प्राथमिक विद्यालय') maxExams = 1; // Class 5
-  else if (schoolType === 'उच्च प्राथमिक विद्यालय') maxExams = 2; // Class 5, 8
   else if (schoolType === 'माध्यमिक विद्यालय') maxExams = 3; // Class 5, 8, 10
 
   const visibleExams = examResults.slice(0, maxExams);

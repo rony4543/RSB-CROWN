@@ -96,10 +96,11 @@ export default function StaffSection() {
               <thead>
                 <tr>
                   <th style={{ width: '45px', textAlign: 'center' }}>#</th>
-                  <th style={{ minWidth: '220px' }}>पद का नाम</th>
-                  <th style={{ width: '130px', textAlign: 'center' }}>स्वीकृत</th>
-                  <th style={{ width: '130px', textAlign: 'center' }}>कार्यरत</th>
-                  <th style={{ width: '130px', textAlign: 'center' }}>रिक्त स्थिति</th>
+                  <th style={{ minWidth: '180px' }}>पद का नाम</th>
+                  <th style={{ width: '100px', textAlign: 'center' }}>स्वीकृत</th>
+                  <th style={{ width: '100px', textAlign: 'center' }}>कार्यरत</th>
+                  <th style={{ width: '100px', textAlign: 'center' }}>रिक्त स्थिति</th>
+                  <th style={{ minWidth: '180px' }}>विवरण</th>
                 </tr>
               </thead>
               <tbody>
@@ -158,6 +159,21 @@ export default function StaffSection() {
                         }}
                       />
                     </td>
+
+                    {/* विवरण */}
+                    <td style={{ verticalAlign: 'middle' }}>
+                      <input
+                        type="text"
+                        value={row.remarks || ''}
+                        onChange={e => {
+                          const updated = [...staffPositions];
+                          updated[ri] = { ...updated[ri], remarks: e.target.value };
+                          dispatch({ type: 'SET_STAFF_POSITIONS', payload: updated });
+                        }}
+                        placeholder="कोई विवरण..."
+                        style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                      />
+                    </td>
                   </tr>
                 ))}
 
@@ -174,6 +190,7 @@ export default function StaffSection() {
                   <td style={{ textAlign: 'center' }}>
                     <strong style={{ color: '#dc2626', fontSize: '13px' }}>{totalVacant} रिक्त</strong>
                   </td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>
@@ -251,6 +268,26 @@ export default function StaffSection() {
           <button className="btn-add-row" onClick={addStaffMember}>
             <Plus size={16} /> कार्मिक जोड़ें
           </button>
+        </div>
+      </div>
+
+      {/* Staff Requirements Question (Psychological) */}
+      <div className="card" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+        <div className="question-block">
+          <div className="question-text" style={{ fontSize: '16px', color: 'var(--primary-800)', marginBottom: '8px' }}>
+            आपकी राय में, विद्यालय के सुचारू संचालन और विद्यार्थियों के बेहतर भविष्य के लिए किन-किन पदों पर कितने अतिरिक्त कार्मिकों की नितांत आवश्यकता है? 
+          </div>
+          <p className="text-sm text-gray mb-4">
+            (कृपया मनोवैज्ञानिक दृष्टिकोण से बताएँ कि इन शिक्षकों की कमी से बच्चों की पढ़ाई और विद्यालय के माहौल पर क्या प्रभाव पड़ रहा है)
+          </p>
+          <textarea
+            className="input-field"
+            value={state.surveyData.staff_requirements_details || ''}
+            onChange={(e) => setField('staff_requirements_details', e.target.value)}
+            placeholder="विस्तृत विवरण यहाँ लिखें..."
+            rows={4}
+            style={{ width: '100%', resize: 'vertical' }}
+          ></textarea>
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import { supabaseApi } from './supabaseApi';
 import { supabase } from './supabase';
 
-// Set to false to enforce authentication and route through our secure server
-const USE_SUPABASE = false;
+// Set to true to route through Supabase
+const USE_SUPABASE = true;
 const API_BASE = 'http://localhost:3001/api';
 
 async function fetchApi(url, options = {}) {

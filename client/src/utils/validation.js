@@ -123,7 +123,9 @@ export function validateSection(sectionKey, state) {
       break;
     case 'road':
       req('q21', 'प्रश्न Q21 (सड़क से जुड़ाव)');
-      req('q22_distance', 'दूरी (किलोमीटर में)');
+      if (d.q21 === 'नहीं') {
+        req('q22_distance', 'दूरी (किलोमीटर में)');
+      }
       break;
     case 'toilet_water':
       req('q23_available', 'प्रश्न Q23 (शौचालय)');

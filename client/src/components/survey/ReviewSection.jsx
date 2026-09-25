@@ -49,68 +49,92 @@ export default function ReviewSection() {
   if (submitted) {
     return (
       <div style={{
-        minHeight: '80vh',
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(13, 27, 62, 0.95)',
+        backdropFilter: 'blur(10px)',
+        zIndex: 9999,
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        padding: '20px'
+        justifyContent: 'center'
       }}>
         <div style={{
-          background: 'var(--white)',
+          background: 'linear-gradient(145deg, #ffffff, #f0f5fb)',
           padding: '60px 40px',
-          borderRadius: '16px',
-          boxShadow: 'var(--shadow-lg)',
-          maxWidth: '450px',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '24px'
+          borderRadius: '30px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          maxWidth: '500px',
+          width: '90%',
+          textAlign: 'center',
+          border: '1px solid rgba(255,255,255,0.8)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
+          <div style={{ position: 'absolute', top: '-50px', left: '-50px', width: '200px', height: '200px', background: 'var(--primary-100)', borderRadius: '50%', filter: 'blur(50px)', opacity: 0.6 }}></div>
+          <div style={{ position: 'absolute', bottom: '-50px', right: '-50px', width: '200px', height: '200px', background: 'var(--accent-100)', borderRadius: '50%', filter: 'blur(50px)', opacity: 0.6 }}></div>
+          
           <div style={{
-            width: '80px',
-            height: '80px',
+            width: '100px',
+            height: '100px',
             borderRadius: '50%',
-            background: 'var(--success-100)',
-            color: 'var(--success-600)',
+            background: 'var(--success-50)',
+            border: '4px solid var(--success-100)',
+            color: 'var(--success-500)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            margin: '0 auto 30px auto',
+            position: 'relative',
+            zIndex: 1,
+            boxShadow: '0 10px 25px rgba(34, 197, 94, 0.2)'
           }}>
-            <CheckCircle size={48} />
+            <CheckCircle size={50} strokeWidth={2.5} />
           </div>
           
           <h2 style={{
             fontSize: '32px',
-            fontWeight: '700',
+            fontWeight: '800',
             color: 'var(--primary-900)',
-            margin: '0'
-          }}>Done</h2>
+            marginBottom: '16px',
+            lineHeight: '1.2',
+            position: 'relative',
+            zIndex: 1
+          }}>
+            Your survey has been successfully submitted
+          </h2>
           
           <p style={{
-            fontSize: '16px',
+            fontSize: '18px',
             color: 'var(--gray-600)',
-            margin: '0',
-            lineHeight: '1.5'
+            marginBottom: '40px',
+            lineHeight: '1.6',
+            position: 'relative',
+            zIndex: 1
           }}>
-            सर्वे सफलतापूर्वक जमा किया गया है।<br/>
-            (ID: {surveyId})
+            Thank you for taking the time to share your school's details. Your response is highly valuable to us and will help shape a better future for education.
           </p>
 
           <button 
-            className="btn btn-primary" 
             onClick={() => { dispatch({type:'RESET'}); window.location.reload(); }}
             style={{
-              marginTop: '16px',
+              background: 'var(--primary-900)',
+              color: 'white',
+              border: 'none',
+              padding: '16px 32px',
+              borderRadius: '50px',
+              fontSize: '18px',
+              fontWeight: '600',
+              cursor: 'pointer',
               width: '100%',
-              borderRadius: '30px',
-              padding: '12px',
-              fontSize: '16px'
+              boxShadow: '0 10px 20px rgba(13, 27, 62, 0.2)',
+              transition: 'transform 0.2s, background 0.2s',
+              position: 'relative',
+              zIndex: 1
             }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.background = 'var(--primary-800)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'var(--primary-900)'; }}
           >
-            नया सर्वे शुरू करें
+            Start a New Survey
           </button>
         </div>
       </div>
@@ -127,9 +151,9 @@ export default function ReviewSection() {
   return (
     <div>
       <div className="section-header">
-        <span className="section-number">समीक्षा</span>
-        <h2 className="section-title">समीक्षा एवं जमा करें</h2>
-        <p className="section-description">कृपया सभी जानकारी की जाँच करें। गलत जानकारी को संपादित करने के लिए "संपादित करें" बटन दबाएँ।</p>
+        <span className="section-number">Overview</span>
+        <h2 className="section-title" style={{ fontSize: '36px', fontWeight: '800', background: 'linear-gradient(90deg, var(--primary-900), var(--accent-600))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>One more confirmation</h2>
+        <p className="section-description" style={{ fontSize: '18px' }}>Please review the details below. This is the final step before sharing the survey.</p>
       </div>
 
       {/* School Profile */}
@@ -227,38 +251,88 @@ export default function ReviewSection() {
         </div>
       </div>
 
-      <div style={{textAlign:'center', padding: '24px 0'}}>
-        <button className="btn btn-lg btn-accent" onClick={() => {
-          // Validate entire form before allowing submit
-          for (let i = 0; i < SECTIONS.length - 1; i++) {
-            const sectionKey = SECTIONS[i].key;
-            const errors = validateSection(sectionKey, state);
-            if (Object.keys(errors).length > 0) {
-              dispatch({ type: 'SET_ERRORS', errors });
-              goToSection(i);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              alert(`कृपया "${SECTIONS[i].title}" भाग में सभी अनिवार्य जानकारी भरें।`);
-              return;
+      <div style={{textAlign:'center', padding: '40px 0', position: 'relative'}}>
+        <div style={{ position: 'absolute', top: 0, left: '10%', right: '10%', height: '1px', background: 'linear-gradient(90deg, transparent, var(--gray-300), transparent)' }}></div>
+        <button 
+          className="btn btn-lg" 
+          style={{
+            background: 'linear-gradient(135deg, var(--primary-800), var(--primary-600))',
+            color: 'white',
+            borderRadius: '50px',
+            padding: '16px 48px',
+            fontSize: '20px',
+            fontWeight: '700',
+            boxShadow: '0 10px 25px -5px rgba(26, 58, 107, 0.4), 0 8px 10px -6px rgba(26, 58, 107, 0.1)',
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(26, 58, 107, 0.5), 0 10px 10px -5px rgba(26, 58, 107, 0.1)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(26, 58, 107, 0.4), 0 8px 10px -6px rgba(26, 58, 107, 0.1)'; }}
+          onClick={() => {
+            for (let i = 0; i < SECTIONS.length - 1; i++) {
+              const sectionKey = SECTIONS[i].key;
+              const errors = validateSection(sectionKey, state);
+              if (Object.keys(errors).length > 0) {
+                dispatch({ type: 'SET_ERRORS', errors });
+                goToSection(i);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                alert(`कृपया "${SECTIONS[i].title}" भाग में सभी अनिवार्य जानकारी भरें।`);
+                return;
+              }
             }
-          }
-          setShowConfirm(true);
-        }}>
-          सर्वे जमा करें
+            setShowConfirm(true);
+          }}
+        >
+          Share the survey
         </button>
       </div>
 
       {showConfirm && (
-        <div className="modal-overlay" onClick={() => setShowConfirm(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">सर्वे जमा करें?</h3>
-            <p className="modal-text">
-              क्या आप <strong>{school.name || 'इस विद्यालय'}</strong> का सर्वे जमा करना चाहते हैं?
-              जमा करने के बाद सर्वे को बदला नहीं जा सकेगा।
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(13, 27, 62, 0.7)',
+          backdropFilter: 'blur(5px)',
+          zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }} onClick={() => setShowConfirm(false)}>
+          <div style={{
+            background: 'white',
+            borderRadius: '24px',
+            padding: '40px',
+            width: '90%',
+            maxWidth: '450px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            textAlign: 'center'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              width: '64px', height: '64px', borderRadius: '50%', background: 'var(--primary-50)', color: 'var(--primary-600)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto'
+            }}>
+              <CheckCircle size={32} />
+            </div>
+            <h3 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--primary-900)', marginBottom: '16px' }}>Ready to share?</h3>
+            <p style={{ fontSize: '16px', color: 'var(--gray-600)', marginBottom: '32px', lineHeight: '1.5' }}>
+              Are you sure you want to share the survey for <strong>{school.name || 'this school'}</strong>? You won't be able to make changes after this.
             </p>
-            <div className="modal-actions">
-              <button className="btn btn-outline" onClick={() => setShowConfirm(false)}>वापस जाएँ</button>
-              <button className="btn btn-accent" onClick={handleSubmit} disabled={submitting}>
-                {submitting ? 'जमा हो रहा है...' : 'सर्वे जमा करें'}
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setShowConfirm(false)}
+                style={{
+                  padding: '12px 24px', borderRadius: '12px', border: '2px solid var(--gray-200)', background: 'transparent',
+                  color: 'var(--gray-700)', fontSize: '16px', fontWeight: '600', cursor: 'pointer', flex: 1
+                }}
+              >Cancel</button>
+              <button 
+                onClick={handleSubmit} 
+                disabled={submitting}
+                style={{
+                  padding: '12px 24px', borderRadius: '12px', border: 'none', background: 'var(--primary-600)',
+                  color: 'white', fontSize: '16px', fontWeight: '600', cursor: 'pointer', flex: 1,
+                  opacity: submitting ? 0.7 : 1
+                }}
+              >
+                {submitting ? 'Sharing...' : 'Yes, Share'}
               </button>
             </div>
           </div>

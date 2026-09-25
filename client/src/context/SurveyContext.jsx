@@ -161,7 +161,33 @@ export function SurveyProvider({ children }) {
   const saveToServer = useCallback(async () => {
     if (!state.surveyId || state.status === 'submitted') return;
     if (String(state.surveyId).startsWith('local_')) {
-      dispatch({ type: 'SET_SAVED' });
+      dispatch({ type: 'SET_SAVING', value: true });
+      try {
+        const { surveyId: newSurveyId, schoolId: newSchoolId } = await api.createSurvey(state.school);
+        await api.updateSurvey(newSurveyId, {
+          school: state.school,
+          survey_data: state.surveyData,
+          current_section: state.currentSection,
+          staff_positions: state.staffPositions.filter(sp => sp.sanctioned || sp.working || sp.remarks),
+          staff_members: state.staffMembers.filter(sm => sm.name),
+          student_enrollment: state.studentEnrollment,
+          palanhar_students: state.palanharStudents.filter(p => p.student_name),
+          disabled_students: state.disabledStudents.filter(d => d.student_name),
+          player_students: state.playerStudents.filter(p => p.student_name),
+          scout_ncc_students: state.scoutNccStudents.filter(s => s.student_name),
+          labs: state.labs,
+          lab_requirements: state.labRequirements.filter(l => l.equipment),
+          committee_members: state.committeeMembers.filter(c => c.name),
+          panchayat_members: state.panchayatMembers.filter(p => p.name),
+          exam_results: state.examResults,
+          requirements: state.requirements.filter(r => r.name),
+        });
+        dispatch({ type: 'SET_SURVEY_META', surveyId: newSurveyId, schoolId: newSchoolId, status: state.status });
+        dispatch({ type: 'SET_SAVED' });
+      } catch (err) {
+        console.warn('Failed to upgrade local survey to server:', err);
+        dispatch({ type: 'SET_SAVED' });
+      }
       return;
     }
     dispatch({ type: 'SET_SAVING', value: true });
@@ -170,7 +196,7 @@ export function SurveyProvider({ children }) {
         school: state.school,
         survey_data: state.surveyData,
         current_section: state.currentSection,
-        staff_positions: state.staffPositions.filter(sp => sp.sanctioned || sp.working),
+        staff_positions: state.staffPositions.filter(sp => sp.sanctioned || sp.working || sp.remarks),
         staff_members: state.staffMembers.filter(sm => sm.name),
         student_enrollment: state.studentEnrollment,
         palanhar_students: state.palanharStudents.filter(p => p.student_name),

@@ -54,7 +54,6 @@ export const PRIORITIES = [
 // School types for Q1
 export const SCHOOL_TYPES = [
   'प्राथमिक विद्यालय',
-  'उच्च प्राथमिक विद्यालय',
   'माध्यमिक विद्यालय',
   'उच्च माध्यमिक विद्यालय'
 ];
