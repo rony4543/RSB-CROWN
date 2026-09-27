@@ -66,26 +66,34 @@ export default function AcademicSection() {
                       </label>
                       
                       {isFacultySelected && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px', paddingLeft: '26px' }}>
-                          {subjects.map(sub => (
-                            <label key={sub} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: 'var(--gray-800)' }}>
-                              <input 
-                                type="checkbox"
-                                checked={d.q2[faculty].includes(sub)}
-                                onChange={(e) => {
-                                  const newQ2 = { ...d.q2 };
-                                  if (e.target.checked) {
-                                    newQ2[faculty] = [...newQ2[faculty], sub];
-                                  } else {
-                                    newQ2[faculty] = newQ2[faculty].filter(s => s !== sub);
-                                  }
-                                  setField('q2', newQ2);
-                                }}
-                                style={{ width: '16px', height: '16px', accentColor: 'var(--primary-500)' }}
-                              />
-                              {sub}
-                            </label>
-                          ))}
+                        <div style={{ overflowX: 'auto', marginTop: '16px' }}>
+                          <div style={{ 
+                            display: 'grid', 
+                            gridTemplateColumns: 'repeat(6, minmax(120px, 1fr))', 
+                            gap: '16px 12px', 
+                            paddingLeft: '26px',
+                            minWidth: '800px'
+                          }}>
+                            {subjects.map(sub => (
+                              <label key={sub} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', fontSize: '14px', color: 'var(--gray-800)', lineHeight: '1.4' }}>
+                                <input 
+                                  type="checkbox"
+                                  checked={d.q2[faculty].includes(sub)}
+                                  onChange={(e) => {
+                                    const newQ2 = { ...d.q2 };
+                                    if (e.target.checked) {
+                                      newQ2[faculty] = [...newQ2[faculty], sub];
+                                    } else {
+                                      newQ2[faculty] = newQ2[faculty].filter(s => s !== sub);
+                                    }
+                                    setField('q2', newQ2);
+                                  }}
+                                  style={{ width: '16px', height: '16px', accentColor: 'var(--primary-500)', marginTop: '2px', flexShrink: 0 }}
+                                />
+                                <span>{sub}</span>
+                              </label>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
