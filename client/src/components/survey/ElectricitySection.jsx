@@ -37,7 +37,7 @@ export default function ElectricitySection() {
           <RadioGroup name="q11_solar" value={d.q11_solar} onChange={(n,v) => setField(n,v)} options={YN} label="सौर ऊर्जा" />
           {(d.q11_electricity === 'नहीं' || d.q11_solar === 'नहीं') && (
             <div className="conditional-block">
-              <FloatingTextarea label="आवश्यकता का विवरण" name="q11_details"
+              <FloatingTextarea label="कारण" name="q11_details"
                 value={d.q11_details} onChange={(n,v) => setField(n,v)} />
             </div>
           )}
