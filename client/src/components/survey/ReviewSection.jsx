@@ -1,9 +1,16 @@
-import { useSurvey } from '../../context/SurveyContext';
+import { useSurvey, SAVE_STATES } from '../../context/SurveyContext';
 import { SECTIONS } from '../../utils/constants';
 import { CheckCircle, AlertTriangle, Edit3 } from 'lucide-react';
 import { useState } from 'react';
 import { api } from '../../services/api';
 import { validateSection } from '../../utils/validation';
+
+const ReviewRow = ({label, value}) => (
+  <div className="review-field">
+    <span className="review-field-label">{label}</span>
+    <span className="review-field-value">{value || '—'}</span>
+  </div>
+);
 
 export default function ReviewSection() {
   const { state, dispatch, goToSection, saveToServer } = useSurvey();
@@ -11,39 +18,72 @@ export default function ReviewSection() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(status === 'submitted');
+  const [submitError, setSubmitError] = useState(null);
 
   const totalBoys = studentEnrollment.reduce((s, r) => s + (parseInt(r.boys) || 0), 0);
   const totalGirls = studentEnrollment.reduce((s, r) => s + (parseInt(r.girls) || 0), 0);
   const totalStaff = staffPositions.filter(r => r.working === 'हाँ' || parseInt(r.working) > 0).length;
   const totalVacant = staffPositions.filter(r => (r.sanctioned === 'हाँ' && r.working !== 'हाँ') || parseInt(r.vacant) > 0).length;
 
+  // ============================================
+  // SAFE SUBMIT — Never falsely report success
+  // ============================================
   const handleSubmit = async () => {
+    if (submitting) return; // Prevent double-click
+    
     setSubmitting(true);
+    setSubmitError(null);
+
     try {
-      if (surveyId && !String(surveyId).startsWith('local_')) {
-        await saveToServer();
-        await api.submitSurvey(surveyId);
+      // Must have a real server-side survey (not local-only)
+      if (!surveyId || String(surveyId).startsWith('local_')) {
+        throw new Error('सर्वे अभी तक सर्वर पर सेव नहीं हुआ है। कृपया पहले सेव करें।');
+      }
+
+      // Save current data first
+      await saveToServer();
+      
+      // Wait a moment to let save complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Now submit
+      const result = await api.submitSurvey(surveyId);
+      
+      if (result.success) {
+        // Only mark as submitted after server confirms
+        dispatch({ type: 'SET_SUBMITTED' });
+        setSubmitted(true);
+        
+        // Clear draft from localStorage
+        localStorage.removeItem('jankali_survey_draft');
+        
+        // Store in completed surveys list
+        try {
+          const savedSurveys = JSON.parse(localStorage.getItem('completed_surveys') || '[]');
+          savedSurveys.push({
+            id: surveyId,
+            school,
+            surveyData: d,
+            submittedAt: result.submitted_at || new Date().toISOString(),
+          });
+          localStorage.setItem('completed_surveys', JSON.stringify(savedSurveys));
+        } catch (e) {
+          console.error('Failed to store completed survey in localStorage:', e);
+        }
+      } else {
+        throw new Error('सर्वे जमा करने में अनपेक्षित त्रुटि।');
       }
     } catch (err) {
-      console.warn('Server submit unavailable, finalizing locally:', err);
-    }
-    dispatch({ type: 'SET_SUBMITTED' });
-    setSubmitted(true);
-    localStorage.removeItem('jankali_survey_draft');
-    try {
-      const savedSurveys = JSON.parse(localStorage.getItem('completed_surveys') || '[]');
-      savedSurveys.push({
-        id: surveyId,
-        school,
-        surveyData: d,
-        submittedAt: new Date().toISOString()
+      console.error('Submit failed:', err);
+      setSubmitError({
+        message: err.message || 'सर्वे जमा करने में त्रुटि हुई। कृपया पुनः प्रयास करें।',
+        referenceId: err.referenceId || null,
       });
-      localStorage.setItem('completed_surveys', JSON.stringify(savedSurveys));
-    } catch (e) {
-      console.error('Failed to store completed survey in localStorage:', e);
+      // DO NOT mark as submitted — the submission failed!
+    } finally {
+      setSubmitting(false);
+      setShowConfirm(false);
     }
-    setSubmitting(false);
-    setShowConfirm(false);
   };
 
   if (submitted) {
@@ -141,13 +181,6 @@ export default function ReviewSection() {
     );
   }
 
-  const ReviewRow = ({label, value}) => (
-    <div className="review-field">
-      <span className="review-field-label">{label}</span>
-      <span className="review-field-value">{value || '—'}</span>
-    </div>
-  );
-
   return (
     <div>
       <div className="section-header">
@@ -155,6 +188,53 @@ export default function ReviewSection() {
         <h2 className="section-title" style={{ fontSize: '36px', fontWeight: '800', background: 'linear-gradient(90deg, var(--primary-900), var(--accent-600))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>One more confirmation</h2>
         <p className="section-description" style={{ fontSize: '18px' }}>Please review the details below. This is the final step before sharing the survey.</p>
       </div>
+
+      {/* Submit Error Alert */}
+      {submitError && (
+        <div style={{
+          background: 'linear-gradient(135deg, #fef2f2, #fff)',
+          border: '2px solid #fca5a5',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '16px',
+        }}>
+          <div style={{ color: '#dc2626', flexShrink: 0, marginTop: '2px' }}>
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <div style={{ fontWeight: '700', color: '#991b1b', fontSize: '16px', marginBottom: '6px' }}>
+              सर्वे जमा नहीं हो सका
+            </div>
+            <div style={{ color: '#7f1d1d', fontSize: '14px', lineHeight: '1.5' }}>
+              {submitError.message}
+            </div>
+            {submitError.referenceId && (
+              <div style={{ color: '#9ca3af', fontSize: '12px', marginTop: '8px', fontFamily: 'monospace' }}>
+                संदर्भ: {submitError.referenceId}
+              </div>
+            )}
+            <button
+              onClick={() => setSubmitError(null)}
+              style={{
+                marginTop: '12px',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: '1px solid #fca5a5',
+                background: 'white',
+                color: '#dc2626',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              ठीक है, पुनः प्रयास करें
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* School Profile */}
       <div className="review-section">
@@ -295,7 +375,7 @@ export default function ReviewSection() {
           backdropFilter: 'blur(5px)',
           zIndex: 9999,
           display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }} onClick={() => setShowConfirm(false)}>
+        }} onClick={() => !submitting && setShowConfirm(false)}>
           <div style={{
             background: 'white',
             borderRadius: '24px',
@@ -318,9 +398,11 @@ export default function ReviewSection() {
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
               <button 
                 onClick={() => setShowConfirm(false)}
+                disabled={submitting}
                 style={{
                   padding: '12px 24px', borderRadius: '12px', border: '2px solid var(--gray-200)', background: 'transparent',
-                  color: 'var(--gray-700)', fontSize: '16px', fontWeight: '600', cursor: 'pointer', flex: 1
+                  color: 'var(--gray-700)', fontSize: '16px', fontWeight: '600', cursor: submitting ? 'not-allowed' : 'pointer', flex: 1,
+                  opacity: submitting ? 0.5 : 1,
                 }}
               >Cancel</button>
               <button 
@@ -328,7 +410,7 @@ export default function ReviewSection() {
                 disabled={submitting}
                 style={{
                   padding: '12px 24px', borderRadius: '12px', border: 'none', background: 'var(--primary-600)',
-                  color: 'white', fontSize: '16px', fontWeight: '600', cursor: 'pointer', flex: 1,
+                  color: 'white', fontSize: '16px', fontWeight: '600', cursor: submitting ? 'not-allowed' : 'pointer', flex: 1,
                   opacity: submitting ? 0.7 : 1
                 }}
               >

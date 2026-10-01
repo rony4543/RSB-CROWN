@@ -1,210 +1,136 @@
 import { supabaseApi } from './supabaseApi';
-import { supabase } from './supabase';
 
-// Set to true to route through Supabase
-const USE_SUPABASE = true;
-const API_BASE = 'http://localhost:3001/api';
-
-async function fetchApi(url, options = {}) {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
-  
-  const headers = { 'Content-Type': 'application/json', ...options.headers };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_BASE}${url}`, {
-    ...options,
-    headers,
-  });
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ error: 'Network error' }));
-    throw new Error(err.error || 'Request failed');
-  }
-  return response.json();
+// ============================================
+// ERROR REFERENCE ID GENERATOR
+// Produces IDs like: SAVE-20260927-A3K9
+// ============================================
+export function generateErrorRef() {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `SAVE-${date}-${rand}`;
 }
 
+// ============================================
+// SAVE ERROR CLASS
+// Carries a diagnostic reference ID for tracing
+// ============================================
+export class SaveError extends Error {
+  constructor(message, referenceId, originalError) {
+    super(message);
+    this.name = 'SaveError';
+    this.referenceId = referenceId;
+    this.originalError = originalError;
+  }
+}
+
+// ============================================
+// SINGLE-SOURCE API — SUPABASE ONLY
+// No silent SQLite fallback. Errors propagate.
+// ============================================
 export const api = {
   // Surveys
   createSurvey: async (school) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.createSurvey(school);
-      } catch (err) {
-        console.warn('Supabase createSurvey error, falling back to server API:', err);
-      }
+    try {
+      return await supabaseApi.createSurvey(school);
+    } catch (err) {
+      const ref = generateErrorRef();
+      console.error(`[${ref}] createSurvey failed:`, err);
+      throw new SaveError(
+        err.message || 'सर्वे बनाने में त्रुटि हुई।',
+        ref,
+        err
+      );
     }
-    return fetchApi('/surveys', { method: 'POST', body: JSON.stringify({ school }) });
   },
 
   getSurveys: async (params = {}) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.getSurveys(params);
-      } catch (err) {
-        console.warn('Supabase getSurveys error, falling back to server API:', err);
-      }
-    }
-    const qs = new URLSearchParams(params).toString();
-    return fetchApi(`/surveys?${qs}`);
+    return await supabaseApi.getSurveys(params);
   },
 
   getSurvey: async (id) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.getSurvey(id);
-      } catch (err) {
-        console.warn('Supabase getSurvey error, falling back to server API:', err);
-      }
-    }
-    return fetchApi(`/surveys/${id}`);
+    return await supabaseApi.getSurvey(id);
   },
 
   updateSurvey: async (id, data) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.updateSurvey(id, data);
-      } catch (err) {
-        console.warn('Supabase updateSurvey error, falling back to server API:', err);
-      }
+    try {
+      return await supabaseApi.updateSurvey(id, data);
+    } catch (err) {
+      const ref = generateErrorRef();
+      console.error(`[${ref}] updateSurvey failed for survey ${id}:`, err);
+      throw new SaveError(
+        err.message || 'सर्वे सेव करने में त्रुटि हुई।',
+        ref,
+        err
+      );
     }
-    return fetchApi(`/surveys/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   },
 
   submitSurvey: async (id) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.submitSurvey(id);
-      } catch (err) {
-        console.warn('Supabase submitSurvey error, falling back to server API:', err);
-      }
+    try {
+      return await supabaseApi.submitSurvey(id);
+    } catch (err) {
+      const ref = generateErrorRef();
+      console.error(`[${ref}] submitSurvey failed for survey ${id}:`, err);
+      throw new SaveError(
+        err.message || 'सर्वे जमा करने में त्रुटि हुई।',
+        ref,
+        err
+      );
     }
-    return fetchApi(`/surveys/${id}/submit`, { method: 'PUT' });
   },
 
   deleteSurvey: async (id) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.deleteSurvey(id);
-      } catch (err) {
-        console.warn('Supabase deleteSurvey error, falling back to server API:', err);
-      }
-    }
-    return fetchApi(`/surveys/${id}`, { method: 'DELETE' });
+    return await supabaseApi.deleteSurvey(id);
   },
 
   // Schools
   getSchools: async (params = {}) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.getSchools(params);
-      } catch (err) {
-        console.warn('Supabase getSchools error, falling back to server API:', err);
-      }
-    }
-    const qs = new URLSearchParams(params).toString();
-    return fetchApi(`/schools?${qs}`);
+    return await supabaseApi.getSchools(params);
   },
 
   getSchool: async (id) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.getSchool(id);
-      } catch (err) {
-        console.warn('Supabase getSchool error, falling back to server API:', err);
-      }
-    }
-    return fetchApi(`/schools/${id}`);
+    return await supabaseApi.getSchool(id);
   },
 
   // Works
   getWorks: async (params = {}) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.getWorks(params);
-      } catch (err) {
-        console.warn('Supabase getWorks error, falling back to server API:', err);
-      }
-    }
-    const qs = new URLSearchParams(params).toString();
-    return fetchApi(`/works?${qs}`);
+    return await supabaseApi.getWorks(params);
   },
 
   updateWork: async (id, data) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.updateWork(id, data);
-      } catch (err) {
-        console.warn('Supabase updateWork error, falling back to server API:', err);
-      }
-    }
-    return fetchApi(`/works/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    return await supabaseApi.updateWork(id, data);
   },
 
   // Dashboard
   getStats: async () => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.getStats();
-      } catch (err) {
-        console.warn('Supabase getStats error, falling back to server API:', err);
-      }
-    }
-    return fetchApi('/dashboard/stats');
+    return await supabaseApi.getStats();
   },
 
   getCharts: async () => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.getCharts();
-      } catch (err) {
-        console.warn('Supabase getCharts error, falling back to server API:', err);
-      }
-    }
-    return fetchApi('/dashboard/charts');
+    return await supabaseApi.getCharts();
   },
 
   // Export
   exportSurvey: async (id) => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.exportSurvey(id);
-      } catch (err) {
-        console.warn('Supabase exportSurvey error:', err);
-      }
-    }
-    return fetchApi(`/export/survey/${id}`);
+    return await supabaseApi.exportSurvey(id);
   },
 
   exportAllSurveys: async () => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.exportAllSurveys();
-      } catch (err) {
-        console.warn('Supabase exportAllSurveys error:', err);
-      }
-    }
-    return fetchApi('/export/surveys/all');
+    return await supabaseApi.exportAllSurveys();
   },
 
   exportAllWorks: async () => {
-    if (USE_SUPABASE) {
-      try {
-        return await supabaseApi.exportAllWorks();
-      } catch (err) {
-        console.warn('Supabase exportAllWorks error:', err);
-      }
-    }
-    return fetchApi('/export/works/all');
+    return await supabaseApi.exportAllWorks();
+  },
+
+  // Diagnostics
+  getDiagnosticLogs: async (params = {}) => {
+    return await supabaseApi.getDiagnosticLogs(params);
   },
 
   // Health
   health: async () => {
-    if (USE_SUPABASE) {
-      return supabaseApi.health();
-    }
-    return fetchApi('/health');
+    return supabaseApi.health();
   },
 };
-

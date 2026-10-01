@@ -1,11 +1,23 @@
 import { supabase } from './supabase';
 
-// Helper to generate UUID
+// ============================================
+// HELPER: Generate UUID
+// ============================================
 function generateId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
   }
   return 'uuid_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+}
+
+// ============================================
+// HELPER: Generate Error Reference ID
+// ============================================
+function generateErrorRef() {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `ERR-${date}-${rand}`;
 }
 
 export const supabaseApi = {
@@ -14,6 +26,27 @@ export const supabaseApi = {
   // ============================================
   async createSurvey(school) {
     let schoolId = generateId();
+
+    // Get current user for user_id association
+    let userId = null;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id || null;
+    } catch (_) { /* ignore if auth not available */ }
+
+    // Enforce: one account = one active survey
+    if (userId) {
+      const { data: existingSurvey } = await supabase
+        .from('survey_responses')
+        .select('id, status')
+        .eq('user_id', userId)
+        .in('status', ['draft', 'submitted'])
+        .maybeSingle();
+
+      if (existingSurvey) {
+        throw new Error('एक अकाउंट से केवल एक ही स्कूल का फॉर्म भरा जा सकता है। कृपया नए स्कूल के लिए नया अकाउंट बनाएं।');
+      }
+    }
 
     // Check if school with udise_code already exists
     if (school.udise_code) {
@@ -25,7 +58,7 @@ export const supabaseApi = {
 
       if (existing) {
         schoolId = existing.id;
-        await supabase
+        const { error: updateErr } = await supabase
           .from('schools')
           .update({
             name: school.name,
@@ -39,8 +72,9 @@ export const supabaseApi = {
             updated_at: new Date().toISOString(),
           })
           .eq('id', schoolId);
+        if (updateErr) throw updateErr;
       } else {
-        await supabase.from('schools').insert({
+        const { error: insertErr } = await supabase.from('schools').insert({
           id: schoolId,
           name: school.name,
           village: school.village,
@@ -52,9 +86,10 @@ export const supabaseApi = {
           principal_mobile: school.principal_mobile,
           principal_email: school.principal_email,
         });
+        if (insertErr) throw insertErr;
       }
     } else {
-      await supabase.from('schools').insert({
+      const { error: insertErr } = await supabase.from('schools').insert({
         id: schoolId,
         name: school.name,
         village: school.village,
@@ -65,16 +100,10 @@ export const supabaseApi = {
         principal_mobile: school.principal_mobile,
         principal_email: school.principal_email,
       });
+      if (insertErr) throw insertErr;
     }
 
     const surveyId = generateId();
-
-    // Get current user for user_id association
-    let userId = null;
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      userId = user?.id || null;
-    } catch (_) { /* ignore if auth not available */ }
 
     const { error: surveyErr } = await supabase.from('survey_responses').insert({
       id: surveyId,
@@ -91,8 +120,14 @@ export const supabaseApi = {
     await supabase.from('survey_audit_logs').insert({
       survey_id: surveyId,
       action: 'created',
-      details: 'Survey draft created',
-    });
+      details: JSON.stringify({
+        message: 'Survey draft created',
+        user_id: userId,
+        school_id: schoolId,
+        udise_code: school.udise_code || null,
+      }),
+      user_info: userId,
+    }).catch(() => {}); // Audit failure should not block survey creation
 
     return { surveyId, schoolId };
   },
@@ -225,54 +260,106 @@ export const supabaseApi = {
       exam_results, requirements
     } = data;
 
-    // 1. Update survey response
+    const errorRef = generateErrorRef();
+
+    // ============================================
+    // STEP 1: Check survey exists and is editable
+    // ============================================
+    const { data: existingSurvey, error: fetchErr } = await supabase
+      .from('survey_responses')
+      .select('id, status, school_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr || !existingSurvey) {
+      throw new Error('सर्वे नहीं मिला।');
+    }
+
+    if (existingSurvey.status === 'submitted') {
+      throw new Error('जमा किया गया सर्वे संशोधित नहीं किया जा सकता।');
+    }
+
+    // ============================================
+    // STEP 2: Update survey_responses (main record)
+    // ============================================
     const updatePayload = { updated_at: new Date().toISOString() };
     if (survey_data !== undefined) updatePayload.survey_data = survey_data;
     if (current_section !== undefined) updatePayload.current_section = current_section;
 
-    await supabase
+    const { error: updateErr } = await supabase
       .from('survey_responses')
       .update(updatePayload)
       .eq('id', id);
 
-    // 2. Update school if provided
-    if (school) {
-      const { data: survey } = await supabase
-        .from('survey_responses')
-        .select('school_id')
-        .eq('id', id)
-        .single();
+    if (updateErr) {
+      console.error(`[${errorRef}] survey_responses update failed:`, updateErr);
+      throw new Error(`सर्वे अपडेट में त्रुटि: ${updateErr.message}`);
+    }
 
-      if (survey?.school_id) {
-        await supabase
-          .from('schools')
-          .update({
-            name: school.name,
-            village: school.village,
-            gram_panchayat: school.gram_panchayat,
-            panchayat_samiti: school.panchayat_samiti,
-            udise_code: school.udise_code,
-            school_code: school.school_code || '',
-            principal_name: school.principal_name,
-            principal_mobile: school.principal_mobile,
-            principal_email: school.principal_email,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', survey.school_id);
+    // ============================================
+    // STEP 3: Update school if provided
+    // ============================================
+    if (school && existingSurvey.school_id) {
+      const { error: schoolErr } = await supabase
+        .from('schools')
+        .update({
+          name: school.name,
+          village: school.village,
+          gram_panchayat: school.gram_panchayat,
+          panchayat_samiti: school.panchayat_samiti,
+          udise_code: school.udise_code,
+          school_code: school.school_code || '',
+          principal_name: school.principal_name,
+          principal_mobile: school.principal_mobile,
+          principal_email: school.principal_email,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingSurvey.school_id);
+
+      if (schoolErr) {
+        console.error(`[${errorRef}] school update failed:`, schoolErr);
+        // Non-fatal: school update failure shouldn't block survey save
       }
     }
 
-    // 3. Helper to sync child tables
+    // ============================================
+    // STEP 4: Sync child tables (with error tracking)
+    // ============================================
     const syncTable = async (tableName, rows, mapFn) => {
-      if (rows === undefined) return;
-      await supabase.from(tableName).delete().eq('survey_id', id);
-      if (rows && rows.length > 0) {
-        const cleanRows = rows.map(r => ({ survey_id: id, ...mapFn(r) }));
-        await supabase.from(tableName).insert(cleanRows);
+      if (rows === undefined) return { table: tableName, status: 'skipped' };
+
+      const cleanRows = (rows && rows.length > 0)
+        ? rows.map(r => ({ survey_id: id, ...mapFn(r) }))
+        : [];
+
+      // DELETE existing rows
+      const { error: deleteError } = await supabase
+        .from(tableName)
+        .delete()
+        .eq('survey_id', id);
+
+      if (deleteError) {
+        console.error(`[${errorRef}] ${tableName} delete failed:`, deleteError);
+        return { table: tableName, status: 'delete_failed', error: deleteError.message };
       }
+
+      // INSERT new rows
+      if (cleanRows.length > 0) {
+        const { error: insertError } = await supabase
+          .from(tableName)
+          .insert(cleanRows);
+
+        if (insertError) {
+          console.error(`[${errorRef}] CRITICAL: ${tableName} insert failed after delete! Lost ${cleanRows.length} rows.`, insertError);
+          console.error(`[${errorRef}] Lost data for recovery:`, JSON.stringify(cleanRows).substring(0, 2000));
+          return { table: tableName, status: 'insert_failed_after_delete', error: insertError.message, lostRows: cleanRows.length };
+        }
+      }
+
+      return { table: tableName, status: 'ok', rows: cleanRows.length };
     };
 
-    await Promise.all([
+    const syncResults = await Promise.all([
       syncTable('staff_positions', staff_positions, r => ({
         post_name: r.post_name,
         sanctioned: String(r.sanctioned || ''),
@@ -369,13 +456,85 @@ export const supabaseApi = {
       })),
     ]);
 
+    // ============================================
+    // STEP 5: Check for failures in child table syncs
+    // ============================================
+    const failures = syncResults.filter(r => r && r.status && r.status.includes('failed'));
+    
+    if (failures.length > 0) {
+      // Log detailed audit for debugging
+      await supabase.from('survey_audit_logs').insert({
+        survey_id: id,
+        action: 'save_error',
+        details: JSON.stringify({
+          errorRef,
+          message: 'Child table sync failures during save',
+          failures: failures.map(f => ({
+            table: f.table,
+            status: f.status,
+            error: f.error,
+            lostRows: f.lostRows,
+          })),
+          section: current_section,
+          timestamp: new Date().toISOString(),
+        }),
+        user_info: (await supabase.auth.getUser().catch(() => ({}))).data?.user?.id || null,
+      }).catch(() => {}); // Don't fail on audit log failure
+
+      throw new Error(
+        `डेटा सेव करने में ${failures.length} तालिकाओं में त्रुटि हुई। आपका डेटा स्थानीय रूप से सुरक्षित है। संदर्भ: ${errorRef}`
+      );
+    }
+
+    // ============================================
+    // STEP 6: Audit log — successful save
+    // ============================================
+    await supabase.from('survey_audit_logs').insert({
+      survey_id: id,
+      action: 'updated',
+      details: JSON.stringify({
+        section: current_section,
+        tablesUpdated: syncResults
+          .filter(r => r && r.status === 'ok')
+          .map(r => `${r.table}(${r.rows})`),
+        timestamp: new Date().toISOString(),
+      }),
+      user_info: (await supabase.auth.getUser().catch(() => ({}))).data?.user?.id || null,
+    }).catch(() => {}); // Don't fail on audit log failure
+
     return { success: true };
   },
 
+  // ============================================
+  // SUBMIT SURVEY — IDEMPOTENT
+  // ============================================
   async submitSurvey(id) {
+    const errorRef = generateErrorRef();
+
+    // Check current status first (idempotent)
+    const { data: currentSurvey, error: fetchErr } = await supabase
+      .from('survey_responses')
+      .select('id, status, school_id, submitted_at')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr || !currentSurvey) {
+      throw new Error('सर्वे नहीं मिला।');
+    }
+
+    // If already submitted, return success (idempotent)
+    if (currentSurvey.status === 'submitted') {
+      return { 
+        success: true, 
+        already_submitted: true,
+        submitted_at: currentSurvey.submitted_at,
+      };
+    }
+
     const submittedAt = new Date().toISOString();
 
-    const { data: survey, error } = await supabase
+    // Update status to submitted
+    const { error: updateErr } = await supabase
       .from('survey_responses')
       .update({
         status: 'submitted',
@@ -383,10 +542,31 @@ export const supabaseApi = {
         updated_at: submittedAt,
       })
       .eq('id', id)
-      .select('school_id')
+      .eq('status', 'draft'); // Only update if still draft (prevents race condition)
+
+    if (updateErr) {
+      console.error(`[${errorRef}] submit status update failed:`, updateErr);
+      throw new Error(`सर्वे जमा करने में त्रुटि: ${updateErr.message}`);
+    }
+
+    // Verify the update actually happened
+    const { data: verifiedSurvey } = await supabase
+      .from('survey_responses')
+      .select('status')
+      .eq('id', id)
       .single();
 
-    if (error) throw error;
+    if (verifiedSurvey?.status !== 'submitted') {
+      // Race condition: another request submitted it first
+      return { success: true, already_submitted: true, submitted_at: submittedAt };
+    }
+
+    // ============================================
+    // GENERATE WORKS — IDEMPOTENT
+    // Delete existing works first, then create new
+    // ============================================
+    // Delete any existing works for this survey (idempotent cleanup)
+    await supabase.from('works').delete().eq('survey_id', id);
 
     // Convert requirements to works
     const { data: reqs } = await supabase
@@ -398,7 +578,7 @@ export const supabaseApi = {
       const works = reqs.map(r => ({
         id: generateId(),
         survey_id: id,
-        school_id: survey.school_id,
+        school_id: currentSurvey.school_id,
         requirement_id: r.id,
         question_number: r.question_number || '',
         category: r.category || '',
@@ -412,20 +592,42 @@ export const supabaseApi = {
         status: 'pending',
       }));
 
-      await supabase.from('works').insert(works);
+      const { error: worksErr } = await supabase.from('works').insert(works);
+      if (worksErr) {
+        console.error(`[${errorRef}] Works generation failed (non-fatal):`, worksErr);
+        // Works generation failure should not un-submit the survey
+      }
     }
 
     // Audit log
     await supabase.from('survey_audit_logs').insert({
       survey_id: id,
       action: 'submitted',
-      details: 'Survey submitted successfully',
-    });
+      details: JSON.stringify({
+        message: 'Survey submitted successfully',
+        submitted_at: submittedAt,
+        works_generated: reqs?.length || 0,
+        errorRef,
+        timestamp: new Date().toISOString(),
+      }),
+      user_info: (await supabase.auth.getUser().catch(() => ({}))).data?.user?.id || null,
+    }).catch(() => {});
 
     return { success: true, submitted_at: submittedAt };
   },
 
   async deleteSurvey(id) {
+    // Check if survey is submitted — don't allow deletion
+    const { data: survey } = await supabase
+      .from('survey_responses')
+      .select('status')
+      .eq('id', id)
+      .single();
+
+    if (survey?.status === 'submitted') {
+      throw new Error('जमा किए गए सर्वे को हटाया नहीं जा सकता।');
+    }
+
     const { error } = await supabase
       .from('survey_responses')
       .delete()
@@ -548,6 +750,27 @@ export const supabaseApi = {
   async exportAllWorks() {
     const res = await this.getWorks({ limit: 1000 });
     return res.works;
+  },
+
+  // ============================================
+  // DIAGNOSTICS
+  // ============================================
+  async getDiagnosticLogs(params = {}) {
+    const { limit = 100, type } = params;
+    
+    let query = supabase
+      .from('survey_audit_logs')
+      .select('*, survey_responses(school_id, schools(name))')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (type) {
+      query = query.eq('action', type);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
   },
 
   async health() {

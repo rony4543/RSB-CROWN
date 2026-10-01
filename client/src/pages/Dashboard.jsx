@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FileText, Briefcase, School, AlertTriangle, Plus, ChevronRight, CheckCircle, Clock, Download, Sparkles, Database } from 'lucide-react';
+import { FileText, Briefcase, School, AlertTriangle, Plus, ChevronRight, CheckCircle, Clock, Download, Sparkles, Database, Activity } from 'lucide-react';
 import { api } from '../services/api';
 import { downloadSurveysAsJson, downloadSurveysAsCsv } from '../utils/aiExporter';
 
@@ -83,6 +83,13 @@ export default function Dashboard() {
           <p className="text-gray-600">विद्यालय सर्वेक्षण एवं कार्य प्रबंधन प्रणाली</p>
         </div>
         <div className="flex gap-3">
+          <button 
+            className="btn btn-outline" 
+            onClick={() => navigate('/diagnostics')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}
+          >
+            <Activity size={18} /> डायग्नोस्टिक्स
+          </button>
           <button className="btn btn-primary" onClick={() => navigate('/survey/new')}>
             <Plus size={20} /> नया सर्वे शुरू करें
           </button>

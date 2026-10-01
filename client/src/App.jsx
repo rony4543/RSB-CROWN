@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import SurveyForm from './pages/SurveyForm';
 import Login from './pages/Login';
+import Diagnostics from './pages/Diagnostics';
 import { SurveyProvider } from './context/SurveyContext';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -43,6 +44,11 @@ export default function App() {
                 <SurveyProvider>
                   <SurveyForm />
                 </SurveyProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/diagnostics" element={
+              <ProtectedRoute>
+                <Diagnostics />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/login" replace />} />
